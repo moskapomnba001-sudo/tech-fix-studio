@@ -92,7 +92,7 @@ label.f input:focus{border-color:var(--ink)}
 .copy{font-family:"JetBrains Mono",monospace;background:#fff;border:1px dashed var(--ink);border-radius:6px;padding:4px 10px;word-break:break-all}
 iframe{width:100%;height:640px;border:1.5px solid var(--line);border-radius:10px;background:#fff;margin-top:16px}
 [hidden]{display:none!important}
-</style>
+.amts{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:18px}.amts .opt label{text-align:center;font-weight:700;font-family:"JetBrains Mono",monospace}</style>
 </head>
 <body>
 <header><div class="wrap">
@@ -101,7 +101,10 @@ iframe{width:100%;height:640px;border:1.5px solid var(--line);border-radius:10px
 <a class="btn" href="https://t.me/qplynnnz" target="_blank" rel="noopener">ทักทาง Telegram</a>
 </div></header>
 <main><section style="border-top:0"><div class="wrap">
+<div id="loading" class="msg warn">กำลังโหลดระบบสมาชิก...</div>
+<noscript><div class="msg err">ต้องเปิด JavaScript เพื่อใช้งานหน้านี้</div></noscript>
 <div id="warn" class="msg warn" hidden>ยังไม่ได้ตั้งค่าระบบสมาชิก กรอก URL และ key ในไฟล์ config.js ตามขั้นตอนใน README</div>
+<div id="fatal" class="msg err" hidden></div>
 
 <div id="auth" class="authbox" hidden>
 <h2>สมาชิก</h2>
@@ -126,6 +129,7 @@ iframe{width:100%;height:640px;border:1.5px solid var(--line);border-radius:10px
 </div>
 
 <div id="p1">
+<div id="paidmsg" class="msg ok" hidden>กำลังตรวจสอบการชำระเงิน เครดิตจะอัปเดตอัตโนมัติภายในไม่กี่วินาที</div>
 <div class="credit"><small>เครดิตคงเหลือ</small><div class="n" id="bal">–</div>
 <button class="btn alt" id="refresh" type="button" style="color:#fff;border-color:#fff;background:transparent;margin-top:12px">รีเฟรชยอด</button></div>
 <div class="card plain"><h3>ใช้เครดิตอย่างไร</h3><p>แจ้งงานที่ต้องการทาง Telegram เราจะหักเครดิตตามราคาที่ตกลงกัน ดูช่วงราคาเบื้องต้นได้ที่หน้า <a href="pricing.html">คำนวณค่าบริการ</a></p></div>
@@ -133,15 +137,12 @@ iframe{width:100%;height:640px;border:1.5px solid var(--line);border-radius:10px
 
 <div id="p2" class="topup" hidden>
 <div class="card plain">
-<h3>เติมเครดิตผ่าน QR / ช่องทางชำระเงินของ Beam</h3>
-<ol>
-<li>กดปุ่มด้านล่างเพื่อไปหน้าชำระเงิน แล้วโอนตามจำนวนที่ต้องการ</li>
-<li>ส่งสลิปหรือหลักฐานการชำระเงิน พร้อมอีเมลสมาชิกของคุณ <span class="copy" id="myemail"></span> ทาง <a href="https://t.me/qplynnnz" target="_blank" rel="noopener">Telegram @qplynnnz</a></li>
-<li>เมื่อตรวจสอบยอดแล้ว เครดิตจะเข้าบัญชี กดรีเฟรชยอดที่แท็บเครดิตคงเหลือ</li>
-</ol>
-<a class="btn" href="https://pay.beamcheckout.com/th/qr/qplynnnzstudio" target="_blank" rel="noopener">ไปหน้าชำระเงิน Beam</a>
-<iframe src="https://pay.beamcheckout.com/th/qr/qplynnnzstudio" title="หน้าชำระเงิน Beam" loading="lazy"></iframe>
-<p class="note">ถ้าหน้าชำระเงินด้านบนไม่แสดง ให้กดปุ่มไปหน้าชำระเงินแทน</p>
+<h3>เติมเครดิต</h3>
+<p style="color:var(--mute);margin-bottom:16px">เลือกยอดที่ต้องการ 1 บาท = 1 เครดิต ชำระผ่าน QR PromptPay ที่หน้า Beam เมื่อชำระสำเร็จเครดิตจะเข้าอัตโนมัติ</p>
+<fieldset><legend>เลือกยอดเติมเครดิต</legend><div class="amts" id="amts"></div></fieldset>
+<div id="topmsg" class="msg" hidden role="alert"></div>
+<button class="btn" id="paybtn" type="button" style="font-size:18px;padding:16px 32px">ไปหน้าชำระเงิน</button>
+<p class="note">ชำระแล้วเครดิตยังไม่เข้าภายใน 5 นาที ส่งสลิปพร้อมอีเมล <span class="copy" id="myemail"></span> ทาง <a href="https://t.me/qplynnnz" target="_blank" rel="noopener">Telegram @qplynnnz</a></p>
 </div></div>
 </div>
 </div></section></main>
@@ -158,7 +159,7 @@ function msg(t,c){const m=$('authmsg');m.textContent=t||'';m.className='msg '+(c
 function setMode(m){mode=m;$('tab-in').setAttribute('aria-selected',m==='in');$('tab-up').setAttribute('aria-selected',m==='up');$('go').textContent=m==='in'?'เข้าสู่ระบบ':'สมัครสมาชิก';$('pw').autocomplete=m==='in'?'current-password':'new-password';msg('')}
 function tab(n){['1','2'].forEach(i=>{$('d'+i).setAttribute('aria-selected',i===n);$('p'+i).hidden=i!==n})}
 async function credits(){const{data,error}=await sb.from('profiles').select('credits').maybeSingle();$('bal').textContent=error||!data?'–':Number(data.credits).toLocaleString('th-TH')+' เครดิต'}
-function view(session){$('auth').hidden=!!session;$('dash').hidden=!session;if(session){$('who').textContent=session.user.email;$('myemail').textContent=session.user.email;credits()}}
+function view(session){$('loading').hidden=true;$('auth').hidden=!!session;$('dash').hidden=!session;if(session){$('who').textContent=session.user.email;$('myemail').textContent=session.user.email;credits()}}
 async function submit(){
  const email=$('email').value.trim(),password=$('pw').value;
  if(!email||password.length<8){msg('กรอกอีเมลและรหัสผ่านอย่างน้อย 8 ตัวอักษร','err');return}
@@ -173,12 +174,40 @@ async function submit(){
 $('tab-in').onclick=()=>setMode('in');$('tab-up').onclick=()=>setMode('up');
 $('d1').onclick=()=>tab('1');$('d2').onclick=()=>tab('2');
 $('go').onclick=submit;$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
-if(!ok){$('warn').hidden=false}
+function fatal(t){$('loading').hidden=true;$('fatal').textContent=t;$('fatal').hidden=false}
+window.addEventListener('error',e=>fatal('เกิดข้อผิดพลาด: '+e.message));
+window.addEventListener('unhandledrejection',e=>fatal('เกิดข้อผิดพลาด: '+(e.reason&&e.reason.message||e.reason)));
+
+const AMTS=[5,15,30,40,60,90,150,250,340,440,490,640,790,990,1640,2440,3240];
+$('amts').innerHTML=AMTS.map(a=>'<div class="opt"><input type="radio" name="amt" id="a'+a+'" value="'+a+'"'+(a===150?' checked':'')+'><label for="a'+a+'">฿'+a.toLocaleString('th-TH')+'</label></div>').join('');
+function tmsg(t,c){const m=$('topmsg');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
+async function pay(){
+ const amt=Number(document.querySelector('input[name=amt]:checked').value),b=$('paybtn');
+ b.disabled=true;tmsg('กำลังสร้างลิงก์ชำระเงิน...');
+ try{
+  const{data}=await sb.auth.getSession();
+  const r=await fetch('/api/create-topup',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify({amount:amt})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||!j.url)throw new Error(j.error||'สร้างลิงก์ไม่สำเร็จ');
+  location.href=j.url;
+ }catch(e){tmsg(e.message,'err');b.disabled=false}
+}
+let watching=false;
+function watch(){
+ if(watching||!/topup=done/.test(location.search))return;watching=true;
+ history.replaceState(null,'',location.pathname);tab('1');$('paidmsg').hidden=false;
+ let n=0;const t=setInterval(async()=>{await credits();if(++n>=12){clearInterval(t);$('paidmsg').textContent='ถ้าเครดิตยังไม่เข้า ให้กดรีเฟรชยอดอีกครั้ง หรือส่งสลิปทาง Telegram'}},4000);
+}
+$('paybtn').onclick=pay;
+if(!ok){$('loading').hidden=true;$('warn').hidden=false}
+else if(!window.supabase){fatal('โหลดไลบรารี Supabase ไม่สำเร็จ ตรวจอินเทอร์เน็ตหรือลองรีเฟรช')}
 else{
- sb=supabase.createClient(cfg.url,cfg.anonKey);
- $('out').onclick=()=>sb.auth.signOut();$('refresh').onclick=credits;
- sb.auth.onAuthStateChange((_e,s)=>view(s));
- sb.auth.getSession().then(({data})=>view(data.session));
+ try{
+  sb=supabase.createClient(cfg.url,cfg.anonKey);
+  $('out').onclick=()=>sb.auth.signOut();$('refresh').onclick=credits;
+  sb.auth.onAuthStateChange((_e,s)=>setTimeout(()=>view(s),0));
+  sb.auth.getSession().then(({data})=>{view(data.session);if(data.session)watch()});
+ }catch(e){fatal('ค่าใน config.js ไม่ถูกต้อง: '+e.message)}
 }
 </script>
 </body>
