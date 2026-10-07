@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แอดมิน | Tech Fix Studio</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F3F5F2;--ink:#10261F;--mute:#4D6159;--line:#CBD5CF;--mark:#FFC93C;--bad:#C93C3C;--ok:#17784F;--panel:#10261F;--card:#FFFFFF}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{font-family:"IBM Plex Sans Thai",system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;font-size:17px}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+header{border-bottom:1px solid var(--line)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;height:64px}
+.brand{font-weight:700;text-decoration:none;font-size:18px}
+.brand span{font-family:"JetBrains Mono",monospace;background:var(--mark);padding:1px 7px;margin-right:8px;border-radius:3px}
+nav{display:flex;gap:22px;font-size:15px}
+nav a{text-decoration:none;color:var(--mute)}nav a:hover{color:var(--ink)}
+.btn{display:inline-block;background:var(--ink);color:#fff;padding:12px 22px;border-radius:6px;text-decoration:none;font-weight:500}
+.btn:hover{background:#1c3c31}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.alt:hover{background:var(--mark);border-color:var(--ink)}
+.hero{padding:72px 0 64px}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+h1{font-size:clamp(32px,5vw,52px);line-height:1.25;font-weight:700;letter-spacing:-.01em}
+h1 mark{background:linear-gradient(transparent 58%,var(--mark) 58%);color:inherit}
+.hero p{margin:20px 0 28px;color:var(--mute);max-width:46ch}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.diff{background:var(--panel);color:#E6EEE9;border-radius:10px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.8;overflow:hidden}
+.diff .bar{padding:10px 16px;background:#0A1A15;color:#8FA79C;font-size:12px}
+.diff pre{padding:14px 0;overflow-x:auto}
+.diff .l{display:block;padding:0 16px;white-space:pre}
+.diff .del{background:rgba(201,60,60,.22);color:#FFB4B4}
+.diff .add{background:rgba(23,120,79,.35);color:#B6F2D3;opacity:0}
+.diff .dim{color:#8FA79C}
+.diff .del{animation:strike 1s 1.2s forwards}
+.diff .add{animation:show .5s 1.6s forwards}
+@keyframes strike{to{text-decoration:line-through;opacity:.55}}
+@keyframes show{to{opacity:1}}
+section{padding:64px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(26px,3.6vw,36px);line-height:1.3;margin-bottom:10px}
+.lead{color:var(--mute);max-width:56ch;margin-bottom:36px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px}
+.card h3{font-size:19px;margin-bottom:6px}
+.card p{color:var(--mute);font-size:15.5px}
+.card:first-child{border-color:var(--ink);box-shadow:5px 5px 0 var(--mark)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;border-left:3px solid var(--ink);padding-left:16px}
+.steps li::before{content:counter(s);font-family:"JetBrains Mono",monospace;font-weight:700;background:var(--mark);padding:0 8px;border-radius:3px;display:inline-block;margin-bottom:6px}
+.steps b{display:block}.steps span{color:var(--mute);font-size:15.5px}
+.why{display:grid;grid-template-columns:repeat(2,1fr);gap:18px 40px}
+.why div{padding:4px 0}.why b{display:block;font-size:18px}.why span{color:var(--mute)}
+.contact{background:var(--ink);color:#fff;border-top:0}
+.contact .lead{color:#B8C9C1}
+.contact .btn{background:var(--mark);color:var(--ink)}
+.contact .btn:hover{background:#ffd966}
+.contact .btn.alt{background:transparent;color:#fff;border-color:#fff}
+.contact .btn.alt:hover{background:#fff;color:var(--ink)}
+.channels{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:640px}
+.ch{border:1px solid #3C5A4E;border-radius:10px;padding:20px}
+.ch small{color:#B8C9C1;display:block}.ch strong{font-family:"JetBrains Mono",monospace;font-size:18px;display:block;margin:2px 0 14px;word-break:break-all}
+footer{padding:22px 0;font-size:14px;color:var(--mute)}
+@media(max-width:860px){.hero .wrap{grid-template-columns:1fr}.grid,.steps{grid-template-columns:1fr 1fr}nav{display:none}}
+@media(max-width:560px){.grid,.steps,.why,.channels{grid-template-columns:1fr}.hero{padding-top:44px}}
+@media(prefers-reduced-motion:reduce){.diff .del{animation:none;text-decoration:line-through;opacity:.55}.diff .add{animation:none;opacity:1}html{scroll-behavior:auto}}
+
+.card.plain,.card.plain:first-child{box-shadow:none;border-color:var(--line)}
+.authbox{max-width:460px;margin:0 auto}
+.tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.tabs button{font:inherit;background:none;border:0;border-bottom:3px solid transparent;padding:10px 16px;cursor:pointer;color:var(--mute);font-weight:500}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--ink);font-weight:700}
+label.f{display:block;font-weight:500;margin-bottom:14px}
+label.f input{display:block;width:100%;font:inherit;padding:11px 14px;border:1.5px solid var(--line);border-radius:8px;margin-top:6px;background:#fff}
+label.f input:focus{border-color:var(--ink)}
+.msg{margin:12px 0;padding:10px 14px;border-radius:8px;font-size:15px}
+.msg.err{background:#FBE3E3;color:#8A2020}.msg.ok{background:#DDF3E8;color:#10583A}.msg.warn{background:#FFF1C9;color:#5C4400}
+.credit{background:var(--ink);color:#fff;border-radius:12px;padding:28px;margin-bottom:24px}
+.credit small{color:#B8C9C1}.credit .n{font-family:"JetBrains Mono",monospace;font-size:clamp(34px,6vw,52px);font-weight:700;color:var(--mark)}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.btn{border:0;font:inherit;font-weight:500;cursor:pointer}
+.btn.full{width:100%}
+.topup ol{padding-left:22px;margin:12px 0 20px;color:var(--mute)}
+.topup ol li{margin-bottom:6px}
+.copy{font-family:"JetBrains Mono",monospace;background:#fff;border:1px dashed var(--ink);border-radius:6px;padding:4px 10px;word-break:break-all}
+iframe{width:100%;height:640px;border:1.5px solid var(--line);border-radius:10px;background:#fff;margin-top:16px}
+[hidden]{display:none!important}
+.amts{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:18px}.amts .opt label{text-align:center;font-weight:700;font-family:"JetBrains Mono",monospace}.bal{font-family:"JetBrains Mono",monospace;font-size:28px;font-weight:700}</style>
+</head>
+<body>
+<header><div class="wrap"><a class="brand" href="index.html"><span>&lt;/&gt;</span>Tech Fix Studio</a><a class="btn alt" href="account.html">หน้าสมาชิก</a></div></header>
+<main><section style="border-top:0"><div class="wrap" style="max-width:560px">
+<h2>แอดมิน: ปรับเครดิตสมาชิก</h2>
+<div id="loading" class="msg warn">กำลังโหลด...</div>
+<div id="fatal" class="msg err" hidden></div>
+<div id="nologin" class="msg warn" hidden>กรุณาเข้าสู่ระบบที่ <a href="account.html">หน้าสมาชิก</a> ด้วยบัญชีแอดมินก่อน แล้วกลับมาหน้านี้</div>
+<div id="forbidden" class="msg err" hidden>บัญชีนี้ไม่มีสิทธิ์แอดมิน</div>
+<div id="panel" hidden>
+<label class="f">อีเมลสมาชิก<input id="em" type="email" autocomplete="off"></label>
+<button class="btn alt" id="look" type="button">ดูยอดคงเหลือ</button>
+<p style="margin:14px 0 22px">ยอดคงเหลือ: <span class="bal" id="bal">–</span></p>
+<label class="f">จำนวนเครดิต (จำนวนเต็ม)<input id="amt" type="number" min="1" step="1" inputmode="numeric"></label>
+<label class="f">หมายเหตุ (เช่น งานแก้บัคหน้าชำระเงิน)<input id="note" type="text" maxlength="200"></label>
+<div id="out" class="msg" hidden role="alert"></div>
+<div class="cta"><button class="btn" id="ded" type="button">หักเครดิต</button><button class="btn alt" id="add" type="button">เพิ่มเครดิต</button></div>
+</div></div></section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const cfg=window.SITE_CONFIG||{};
+const show=id=>{['loading','fatal','nologin','forbidden','panel'].forEach(x=>$(x).hidden=x!==id)};
+function out(t,c){const m=$('out');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
+let sb;
+async function call(body){
+ const{data}=await sb.auth.getSession();if(!data.session){const e=new Error('nologin');e.status=401;throw e}
+ const r=await fetch('/api/admin-credit',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify(body)});
+ const j=await r.json().catch(()=>({}));
+ if(!r.ok){const e=new Error(j.error||'เกิดข้อผิดพลาด');e.status=r.status;throw e}
+ return j;
+}
+const fmt=n=>Number(n).toLocaleString('th-TH')+' เครดิต';
+async function look(){
+ out('');try{const j=await call({action:'lookup',email:$('em').value});$('bal').textContent=fmt(j.credits)}
+ catch(e){$('bal').textContent='–';out(e.message,'err')}
+}
+async function adjust(type){
+ const email=$('em').value.trim(),amount=Number($('amt').value);
+ if(!email||!Number.isInteger(amount)||amount<1){out('กรอกอีเมลและจำนวนเต็มตั้งแต่ 1 ขึ้นไป','err');return}
+ if(!confirm((type==='deduct'?'หัก ':'เพิ่ม ')+amount.toLocaleString('th-TH')+' เครดิต ให้ '+email+' ใช่หรือไม่?'))return;
+ $('ded').disabled=$('add').disabled=true;out('กำลังดำเนินการ...');
+ try{const j=await call({action:'adjust',type,email,amount,note:$('note').value});
+  $('bal').textContent=fmt(j.credits);$('amt').value='';out((type==='deduct'?'หัก':'เพิ่ม')+'เครดิตสำเร็จ ยอดคงเหลือใหม่ '+fmt(j.credits),'ok')}
+ catch(e){out(e.message,'err')}
+ $('ded').disabled=$('add').disabled=false;
+}
+(async()=>{
+ if(!cfg.url||!cfg.anonKey||/YOUR/.test(cfg.url+cfg.anonKey)||!window.supabase){$('fatal').textContent='ตั้งค่า config.js ไม่ถูกต้อง หรือโหลด Supabase ไม่ได้';show('fatal');return}
+ sb=supabase.createClient(cfg.url,cfg.anonKey);
+ $('look').onclick=look;$('ded').onclick=()=>adjust('deduct');$('add').onclick=()=>adjust('add');
+ try{await call({action:'check'});show('panel')}
+ catch(e){if(e.status===403)show('forbidden');else if(e.status===401)show('nologin');else{$('fatal').textContent=e.message;show('fatal')}}
+})();
+</script>
+</body>
+</html>

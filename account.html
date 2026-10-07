@@ -116,9 +116,17 @@ iframe{width:100%;height:640px;border:1.5px solid var(--line);border-radius:10px
 <div id="authmsg" class="msg" hidden role="alert"></div>
 <div id="authform">
 <label class="f">อีเมล<input id="email" type="email" autocomplete="email" required></label>
-<label class="f">รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)<input id="pw" type="password" autocomplete="current-password" minlength="8" required></label>
+<label class="f" id="pwl">รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)<input id="pw" type="password" autocomplete="current-password" minlength="8" required></label>
 <button class="btn full" id="go" type="button">เข้าสู่ระบบ</button>
+<p class="note" style="margin-top:14px"><a href="#" id="forgot">ลืมรหัสผ่าน?</a></p>
 </div>
+</div>
+
+<div id="recover" class="authbox" hidden>
+<h2>ตั้งรหัสผ่านใหม่</h2>
+<div id="recmsg" class="msg" hidden role="alert"></div>
+<label class="f">รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)<input id="npw" type="password" autocomplete="new-password" minlength="8"></label>
+<button class="btn full" id="savepw" type="button">บันทึกรหัสผ่านใหม่</button>
 </div>
 
 <div id="dash" hidden>
@@ -126,6 +134,7 @@ iframe{width:100%;height:640px;border:1.5px solid var(--line);border-radius:10px
 <div class="tabs" role="tablist">
 <button role="tab" id="d1" aria-selected="true">เครดิตคงเหลือ</button>
 <button role="tab" id="d2" aria-selected="false">เติมเครดิต</button>
+<button role="tab" id="d3" aria-selected="false">ประวัติ</button>
 </div>
 
 <div id="p1">
@@ -144,6 +153,11 @@ iframe{width:100%;height:640px;border:1.5px solid var(--line);border-radius:10px
 <button class="btn" id="paybtn" type="button" style="font-size:18px;padding:16px 32px">ไปหน้าชำระเงิน</button>
 <p class="note">ชำระแล้วเครดิตยังไม่เข้าภายใน 5 นาที ส่งสลิปพร้อมอีเมล <span class="copy" id="myemail"></span> ทาง <a href="https://t.me/qplynnnz" target="_blank" rel="noopener">Telegram @qplynnnz</a></p>
 </div></div>
+
+<div id="p3" hidden>
+<div class="card plain"><h3>ประวัติรายการ</h3>
+<div style="overflow-x:auto"><table id="hist" style="width:100%;border-collapse:collapse;font-size:15px"></table></div>
+<p class="note" id="histempty" hidden>ยังไม่มีรายการ</p></div></div>
 </div>
 </div></section></main>
 <footer><div class="wrap">© 2026 Tech Fix Studio · @qplynnnz · +6661126882</div></footer>
@@ -154,14 +168,20 @@ iframe{width:100%;height:640px;border:1.5px solid var(--line);border-radius:10px
 const $=id=>document.getElementById(id);
 const cfg=window.SITE_CONFIG||{};
 const ok=cfg.url&&cfg.anonKey&&!/YOUR/.test(cfg.url+cfg.anonKey);
-let sb=null,mode='in';
+let sb=null,mode='in',recovering=false;
 function msg(t,c){const m=$('authmsg');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
-function setMode(m){mode=m;$('tab-in').setAttribute('aria-selected',m==='in');$('tab-up').setAttribute('aria-selected',m==='up');$('go').textContent=m==='in'?'เข้าสู่ระบบ':'สมัครสมาชิก';$('pw').autocomplete=m==='in'?'current-password':'new-password';msg('')}
-function tab(n){['1','2'].forEach(i=>{$('d'+i).setAttribute('aria-selected',i===n);$('p'+i).hidden=i!==n})}
+function setMode(m){mode=m;$('tab-in').setAttribute('aria-selected',m==='in');$('tab-up').setAttribute('aria-selected',m==='up');$('go').textContent=m==='in'?'เข้าสู่ระบบ':m==='up'?'สมัครสมาชิก':'ส่งลิงก์ตั้งรหัสผ่านใหม่';$('pw').autocomplete=m==='in'?'current-password':'new-password';$('pwl').hidden=m==='reset';$('forgot').hidden=m!=='in';msg('')}
+function tab(n){['1','2','3'].forEach(i=>{$('d'+i).setAttribute('aria-selected',i===n);$('p'+i).hidden=i!==n});if(n==='3')loadHist()}
 async function credits(){const{data,error}=await sb.from('profiles').select('credits').maybeSingle();$('bal').textContent=error||!data?'–':Number(data.credits).toLocaleString('th-TH')+' เครดิต'}
-function view(session){$('loading').hidden=true;$('auth').hidden=!!session;$('dash').hidden=!session;if(session){$('who').textContent=session.user.email;$('myemail').textContent=session.user.email;credits()}}
+function view(session){if(recovering)return;$('loading').hidden=true;$('auth').hidden=!!session;$('dash').hidden=!session;if(session){$('who').textContent=session.user.email;$('myemail').textContent=session.user.email;credits()}}
 async function submit(){
  const email=$('email').value.trim(),password=$('pw').value;
+ if(mode==='reset'){
+  if(!email){msg('กรอกอีเมลก่อน','err');return}
+  $('go').disabled=true;
+  try{const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;msg('ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่อีเมลแล้ว ตรวจกล่องจดหมาย (รวมถึงสแปม)','ok')}
+  catch(e){msg('ส่งไม่สำเร็จ: '+e.message,'err')}
+  $('go').disabled=false;return}
  if(!email||password.length<8){msg('กรอกอีเมลและรหัสผ่านอย่างน้อย 8 ตัวอักษร','err');return}
  $('go').disabled=true;msg('กำลังดำเนินการ...');
  try{
@@ -199,13 +219,37 @@ function watch(){
  let n=0;const t=setInterval(async()=>{await credits();if(++n>=12){clearInterval(t);$('paidmsg').textContent='ถ้าเครดิตยังไม่เข้า ให้กดรีเฟรชยอดอีกครั้ง หรือส่งสลิปทาง Telegram'}},4000);
 }
 $('paybtn').onclick=pay;
+$('d3').onclick=()=>tab('3');
+$('forgot').onclick=e=>{e.preventDefault();setMode('reset')};
+function rmsg(t,c){const m=$('recmsg');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
+async function savePw(){
+ const p=$('npw').value;if(p.length<8){rmsg('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร','err');return}
+ $('savepw').disabled=true;
+ const{error}=await sb.auth.updateUser({password:p});
+ if(error){rmsg('บันทึกไม่สำเร็จ: '+error.message,'err');$('savepw').disabled=false;return}
+ recovering=false;$('recover').hidden=true;$('savepw').disabled=false;
+ const{data}=await sb.auth.getSession();view(data.session);
+}
+$('savepw').onclick=savePw;
+async function loadHist(){
+ const t=$('hist');t.textContent='';$('histempty').hidden=true;
+ const[a,b]=await Promise.all([
+  sb.from('topups').select('amount_baht,paid_at').eq('status','paid').order('paid_at',{ascending:false}).limit(50),
+  sb.from('credit_log').select('delta,reason,note,created_at').order('created_at',{ascending:false}).limit(50)]);
+ const rows=[];
+ (a.data||[]).forEach(r=>rows.push({d:r.paid_at,txt:'เติมเครดิต',v:Number(r.amount_baht)}));
+ (b.data||[]).forEach(r=>rows.push({d:r.created_at,txt:(r.delta<0?'หักเครดิต':'เพิ่มเครดิต')+(r.note?' · '+r.note:''),v:Number(r.delta)}));
+ rows.sort((x,y)=>new Date(y.d)-new Date(x.d));
+ if(!rows.length){$('histempty').hidden=false;return}
+ rows.forEach(r=>{const tr=t.insertRow();[new Date(r.d).toLocaleString('th-TH'),r.txt,(r.v>0?'+':'')+r.v.toLocaleString('th-TH')].forEach((x,i)=>{const td=tr.insertCell();td.textContent=x;td.style.cssText='padding:10px 8px;border-bottom:1px solid var(--line)'+(i===2?';text-align:right;font-family:"JetBrains Mono",monospace;font-weight:700;color:'+(r.v>0?'var(--ok)':'var(--bad)'):'')})});
+}
 if(!ok){$('loading').hidden=true;$('warn').hidden=false}
 else if(!window.supabase){fatal('โหลดไลบรารี Supabase ไม่สำเร็จ ตรวจอินเทอร์เน็ตหรือลองรีเฟรช')}
 else{
  try{
   sb=supabase.createClient(cfg.url,cfg.anonKey);
   $('out').onclick=()=>sb.auth.signOut();$('refresh').onclick=credits;
-  sb.auth.onAuthStateChange((_e,s)=>setTimeout(()=>view(s),0));
+  sb.auth.onAuthStateChange((ev,s)=>{if(ev==='PASSWORD_RECOVERY')recovering=true;setTimeout(()=>{if(ev==='PASSWORD_RECOVERY'){$('loading').hidden=true;$('auth').hidden=true;$('dash').hidden=true;$('recover').hidden=false;return}view(s)},0)});
   sb.auth.getSession().then(({data})=>{view(data.session);if(data.session)watch()});
  }catch(e){fatal('ค่าใน config.js ไม่ถูกต้อง: '+e.message)}
 }
