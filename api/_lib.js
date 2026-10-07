@@ -37,4 +37,13 @@ function verifySignature(rawBody, header, secretB64) {
   return got.length === expected.length && crypto.timingSafeEqual(got, expected);
 }
 
-module.exports = { AMOUNTS, env, readRaw, send, supa, verifySignature };
+// ตรวจ token ของผู้ใช้กับ Supabase คืน user หรือ null
+async function getUser(req) {
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!token) return null;
+  const base = env('SUPABASE_URL').replace(/\/+$/, '');
+  const r = await fetch(base + '/auth/v1/user', { headers: { apikey: env('SUPABASE_SERVICE_ROLE_KEY'), Authorization: 'Bearer ' + token } });
+  return r.ok ? r.json() : null;
+}
+
+module.exports = { AMOUNTS, env, readRaw, send, supa, verifySignature, getUser };
