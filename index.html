@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>รับแก้บัคเว็บไซต์ สร้างเว็บ ระบบขายของออนไลน์ ดาต้าเบส | ติดต่อ Telegram</title>
+<meta name="description" content="รับแก้บัคเว็บไซต์ รับสร้างเว็บไซต์ สร้างแพลตฟอร์มขายของออนไลน์ แก้ปัญหาโค้ดและฐานข้อมูล และงานเทคทั่วไป ปรึกษาฟรีผ่าน Telegram">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F3F5F2;--ink:#10261F;--mute:#4D6159;--line:#CBD5CF;--mark:#FFC93C;--bad:#C93C3C;--ok:#17784F;--panel:#10261F;--card:#FFFFFF}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{font-family:"IBM Plex Sans Thai",system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;font-size:17px}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+header{border-bottom:1px solid var(--line)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;height:64px}
+.brand{font-weight:700;text-decoration:none;font-size:18px}
+.brand span{font-family:"JetBrains Mono",monospace;background:var(--mark);padding:1px 7px;margin-right:8px;border-radius:3px}
+nav{display:flex;gap:22px;font-size:15px}
+nav a{text-decoration:none;color:var(--mute)}nav a:hover{color:var(--ink)}
+.btn{display:inline-block;background:var(--ink);color:#fff;padding:12px 22px;border-radius:6px;text-decoration:none;font-weight:500}
+.btn:hover{background:#1c3c31}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.alt:hover{background:var(--mark);border-color:var(--ink)}
+.hero{padding:72px 0 64px}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+h1{font-size:clamp(32px,5vw,52px);line-height:1.25;font-weight:700;letter-spacing:-.01em}
+h1 mark{background:linear-gradient(transparent 58%,var(--mark) 58%);color:inherit}
+.hero p{margin:20px 0 28px;color:var(--mute);max-width:46ch}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.diff{background:var(--panel);color:#E6EEE9;border-radius:10px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.8;overflow:hidden}
+.diff .bar{padding:10px 16px;background:#0A1A15;color:#8FA79C;font-size:12px}
+.diff pre{padding:14px 0;overflow-x:auto}
+.diff .l{display:block;padding:0 16px;white-space:pre}
+.diff .del{background:rgba(201,60,60,.22);color:#FFB4B4}
+.diff .add{background:rgba(23,120,79,.35);color:#B6F2D3;opacity:0}
+.diff .dim{color:#8FA79C}
+.diff .del{animation:strike 1s 1.2s forwards}
+.diff .add{animation:show .5s 1.6s forwards}
+@keyframes strike{to{text-decoration:line-through;opacity:.55}}
+@keyframes show{to{opacity:1}}
+section{padding:64px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(26px,3.6vw,36px);line-height:1.3;margin-bottom:10px}
+.lead{color:var(--mute);max-width:56ch;margin-bottom:36px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px}
+.card h3{font-size:19px;margin-bottom:6px}
+.card p{color:var(--mute);font-size:15.5px}
+.card:first-child{border-color:var(--ink);box-shadow:5px 5px 0 var(--mark)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;border-left:3px solid var(--ink);padding-left:16px}
+.steps li::before{content:counter(s);font-family:"JetBrains Mono",monospace;font-weight:700;background:var(--mark);padding:0 8px;border-radius:3px;display:inline-block;margin-bottom:6px}
+.steps b{display:block}.steps span{color:var(--mute);font-size:15.5px}
+.why{display:grid;grid-template-columns:repeat(2,1fr);gap:18px 40px}
+.why div{padding:4px 0}.why b{display:block;font-size:18px}.why span{color:var(--mute)}
+.contact{background:var(--ink);color:#fff;border-top:0}
+.contact .lead{color:#B8C9C1}
+.contact .btn{background:var(--mark);color:var(--ink)}
+.contact .btn:hover{background:#ffd966}
+.contact .btn.alt{background:transparent;color:#fff;border-color:#fff}
+.contact .btn.alt:hover{background:#fff;color:var(--ink)}
+.channels{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:640px}
+.ch{border:1px solid #3C5A4E;border-radius:10px;padding:20px}
+.ch small{color:#B8C9C1;display:block}.ch strong{font-family:"JetBrains Mono",monospace;font-size:18px;display:block;margin:2px 0 14px;word-break:break-all}
+footer{padding:22px 0;font-size:14px;color:var(--mute)}
+@media(max-width:860px){.hero .wrap{grid-template-columns:1fr}.grid,.steps{grid-template-columns:1fr 1fr}nav{display:none}}
+@media(max-width:560px){.grid,.steps,.why,.channels{grid-template-columns:1fr}.hero{padding-top:44px}}
+@media(prefers-reduced-motion:reduce){.diff .del{animation:none;text-decoration:line-through;opacity:.55}.diff .add{animation:none;opacity:1}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<a class="brand" href="#top"><span>&lt;/&gt;</span>Tech Fix Studio</a>
+<nav aria-label="เมนูหลัก"><a href="#services">บริการ</a><a href="#process">ขั้นตอนทำงาน</a><a href="#why">ทำไมต้องเรา</a><a href="pricing.html">คำนวณค่าบริการ</a><a href="account.html">สมาชิก</a><a href="#contact">ติดต่อ</a></nav>
+<a class="btn" href="https://t.me/qplynnnz" target="_blank" rel="noopener">ทักทาง Telegram</a>
+</div></header>
+
+<main id="top">
+<div class="hero"><div class="wrap">
+<div>
+<h1>เว็บมีปัญหา ระบบรวน โค้ดไม่ทำงาน <mark>เราช่วยแก้ให้จบ</mark></h1>
+<p>รับแก้บัคเว็บไซต์ สร้างเว็บและร้านค้าออนไลน์ ดูแลฐานข้อมูล และงานเทคทุกรูปแบบ บอกปัญหาของคุณมา เราตอบกลับพร้อมแนวทางและราคาที่ชัดเจน</p>
+<div class="cta"><a class="btn" href="https://t.me/qplynnnz" target="_blank" rel="noopener">ปรึกษาฟรีทาง Telegram</a><a class="btn alt" href="pricing.html">คำนวณค่าบริการ</a></div>
+</div>
+<div class="diff" aria-hidden="true">
+<div class="bar">checkout.js — แก้ไขแล้ว</div>
+<pre><span class="l dim">function getTotal(cart) {</span><span class="l del">-  return cart.items.map(i =&gt; i.price).sum()</span><span class="l add">+  return cart.items.reduce((s, i) =&gt; s + i.price * i.qty, 0)</span><span class="l dim">}</span></pre>
+</div>
+</div></div>
+
+<section id="services"><div class="wrap">
+<h2>บริการของเรา</h2>
+<p class="lead">ไม่แน่ใจว่าปัญหาของคุณอยู่ตรงไหน เล่าอาการให้ฟัง เราช่วยวิเคราะห์ให้ก่อนเริ่มงาน</p>
+<div class="grid">
+<div class="card"><h3>แก้บัคเว็บไซต์</h3><p>หน้าเว็บพัง ฟอร์มไม่ส่ง ชำระเงินไม่ผ่าน โหลดช้า หรือแสดงผลเพี้ยนบนมือถือ เราหาสาเหตุและแก้ให้ตรงจุด</p></div>
+<div class="card"><h3>รับสร้างเว็บไซต์</h3><p>เว็บบริษัท แลนดิ้งเพจ และเว็บไซต์เฉพาะงาน ออกแบบให้ใช้งานง่าย เปิดเร็ว และรองรับการแสดงผลทุกหน้าจอ</p></div>
+<div class="card"><h3>แพลตฟอร์มขายของออนไลน์</h3><p>ระบบร้านค้า ตะกร้าสินค้า ชำระเงิน จัดการสต็อกและออเดอร์ ตามรูปแบบธุรกิจของคุณ</p></div>
+<div class="card"><h3>แก้ปัญหาโค้ดดิ้ง</h3><p>รีวิวและแก้โค้ดที่ทำงานผิด เขียนฟีเจอร์เพิ่ม จัดโครงสร้างให้ดูแลต่อได้ง่ายขึ้น</p></div>
+<div class="card"><h3>ฐานข้อมูล</h3><p>ออกแบบโครงสร้าง แก้คิวรีช้า ย้ายข้อมูล และตั้งค่าสำรองข้อมูล</p></div>
+<div class="card"><h3>งานเทคอื่น ๆ</h3><p>เชื่อมต่อ API ตั้งค่าโดเมนและโฮสติ้ง ทำระบบอัตโนมัติ หรืองานที่ไม่อยู่ในรายการ ทักมาคุยได้</p></div>
+</div></div></section>
+
+<section id="process"><div class="wrap">
+<h2>ขั้นตอนการทำงาน</h2>
+<p class="lead">ทำงานตามลำดับเดียวกันทุกโปรเจกต์ ไม่ว่างานเล็กหรือใหญ่</p>
+<ol class="steps">
+<li><b>เล่าปัญหา</b><span>ส่งรายละเอียดหรือภาพหน้าจอมาทาง Telegram</span></li>
+<li><b>ประเมินและเสนอราคา</b><span>แจ้งแนวทาง ระยะเวลา และราคาก่อนเริ่มงาน</span></li>
+<li><b>ลงมือแก้หรือสร้าง</b><span>อัปเดตความคืบหน้าให้ทราบระหว่างทาง</span></li>
+<li><b>ส่งมอบและดูแล</b><span>ทดสอบร่วมกัน ส่งมอบโค้ด และแจ้งวิธีใช้งาน</span></li>
+</ol></div></section>
+
+<section id="why"><div class="wrap">
+<h2>ทำไมลูกค้าเลือกเรา</h2>
+<p class="lead">เน้นทำให้งานใช้ได้จริง และสื่อสารกันตรง ๆ</p>
+<div class="why">
+<div><b>ตอบเร็ว คุยตรง</b><span>คุยกับคนทำงานโดยตรงผ่าน Telegram ไม่ต้องผ่านหลายต่อ</span></div>
+<div><b>ราคาแจ้งก่อนเริ่ม</b><span>ตกลงขอบเขตงานและราคาให้ชัดก่อนลงมือ</span></div>
+<div><b>โค้ดเป็นของคุณ</b><span>ส่งมอบซอร์สโค้ดครบ ไม่ผูกมัดกับเรา</span></div>
+<div><b>รับงานทั้งเล็กและใหญ่</b><span>ตั้งแต่แก้บัคจุดเดียว ไปจนถึงสร้างระบบทั้งชุด</span></div>
+</div></div></section>
+
+<section id="contact" class="contact"><div class="wrap">
+<h2>คุยเรื่องงานของคุณ</h2>
+<p class="lead">ส่งปัญหาหรือไอเดียมาได้เลย ปรึกษาเบื้องต้นไม่มีค่าใช้จ่าย</p>
+<div class="channels">
+<div class="ch"><small>Telegram</small><strong>@qplynnnz</strong><a class="btn" href="https://t.me/qplynnnz" target="_blank" rel="noopener">เปิด Telegram</a></div>
+<div class="ch"><small>โทรศัพท์</small><strong>+6661126882</strong><a class="btn alt" href="tel:+6661126882">โทรเลย</a></div>
+</div></div></section>
+</main>
+<footer><div class="wrap">© 2026 Tech Fix Studio · รับแก้บัคเว็บไซต์ สร้างเว็บ และงานเทค</div></footer>
+</body>
+</html>

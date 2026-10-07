@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>คำนวณค่าบริการ ฿5 – ฿5,000 | Tech Fix Studio</title>
+<meta name="description" content="ประเมินค่าบริการแก้บัค สร้างเว็บ ระบบขายของออนไลน์ และงานเทค ตั้งแต่ 5 ถึง 5,000 บาท ขึ้นอยู่กับลักษณะงาน">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F3F5F2;--ink:#10261F;--mute:#4D6159;--line:#CBD5CF;--mark:#FFC93C;--bad:#C93C3C;--ok:#17784F;--panel:#10261F;--card:#FFFFFF}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{font-family:"IBM Plex Sans Thai",system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;font-size:17px}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+header{border-bottom:1px solid var(--line)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;height:64px}
+.brand{font-weight:700;text-decoration:none;font-size:18px}
+.brand span{font-family:"JetBrains Mono",monospace;background:var(--mark);padding:1px 7px;margin-right:8px;border-radius:3px}
+nav{display:flex;gap:22px;font-size:15px}
+nav a{text-decoration:none;color:var(--mute)}nav a:hover{color:var(--ink)}
+.btn{display:inline-block;background:var(--ink);color:#fff;padding:12px 22px;border-radius:6px;text-decoration:none;font-weight:500}
+.btn:hover{background:#1c3c31}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.alt:hover{background:var(--mark);border-color:var(--ink)}
+.hero{padding:72px 0 64px}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+h1{font-size:clamp(32px,5vw,52px);line-height:1.25;font-weight:700;letter-spacing:-.01em}
+h1 mark{background:linear-gradient(transparent 58%,var(--mark) 58%);color:inherit}
+.hero p{margin:20px 0 28px;color:var(--mute);max-width:46ch}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.diff{background:var(--panel);color:#E6EEE9;border-radius:10px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.8;overflow:hidden}
+.diff .bar{padding:10px 16px;background:#0A1A15;color:#8FA79C;font-size:12px}
+.diff pre{padding:14px 0;overflow-x:auto}
+.diff .l{display:block;padding:0 16px;white-space:pre}
+.diff .del{background:rgba(201,60,60,.22);color:#FFB4B4}
+.diff .add{background:rgba(23,120,79,.35);color:#B6F2D3;opacity:0}
+.diff .dim{color:#8FA79C}
+.diff .del{animation:strike 1s 1.2s forwards}
+.diff .add{animation:show .5s 1.6s forwards}
+@keyframes strike{to{text-decoration:line-through;opacity:.55}}
+@keyframes show{to{opacity:1}}
+section{padding:64px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(26px,3.6vw,36px);line-height:1.3;margin-bottom:10px}
+.lead{color:var(--mute);max-width:56ch;margin-bottom:36px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px}
+.card h3{font-size:19px;margin-bottom:6px}
+.card p{color:var(--mute);font-size:15.5px}
+.card:first-child{border-color:var(--ink);box-shadow:5px 5px 0 var(--mark)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;border-left:3px solid var(--ink);padding-left:16px}
+.steps li::before{content:counter(s);font-family:"JetBrains Mono",monospace;font-weight:700;background:var(--mark);padding:0 8px;border-radius:3px;display:inline-block;margin-bottom:6px}
+.steps b{display:block}.steps span{color:var(--mute);font-size:15.5px}
+.why{display:grid;grid-template-columns:repeat(2,1fr);gap:18px 40px}
+.why div{padding:4px 0}.why b{display:block;font-size:18px}.why span{color:var(--mute)}
+.contact{background:var(--ink);color:#fff;border-top:0}
+.contact .lead{color:#B8C9C1}
+.contact .btn{background:var(--mark);color:var(--ink)}
+.contact .btn:hover{background:#ffd966}
+.contact .btn.alt{background:transparent;color:#fff;border-color:#fff}
+.contact .btn.alt:hover{background:#fff;color:var(--ink)}
+.channels{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:640px}
+.ch{border:1px solid #3C5A4E;border-radius:10px;padding:20px}
+.ch small{color:#B8C9C1;display:block}.ch strong{font-family:"JetBrains Mono",monospace;font-size:18px;display:block;margin:2px 0 14px;word-break:break-all}
+footer{padding:22px 0;font-size:14px;color:var(--mute)}
+@media(max-width:860px){.hero .wrap{grid-template-columns:1fr}.grid,.steps{grid-template-columns:1fr 1fr}nav{display:none}}
+@media(max-width:560px){.grid,.steps,.why,.channels{grid-template-columns:1fr}.hero{padding-top:44px}}
+@media(prefers-reduced-motion:reduce){.diff .del{animation:none;text-decoration:line-through;opacity:.55}.diff .add{animation:none;opacity:1}html{scroll-behavior:auto}}
+
+.calc{display:grid;grid-template-columns:1.2fr .8fr;gap:32px;align-items:start}
+fieldset{border:0;padding:0;margin:0 0 28px}
+legend{font-weight:700;font-size:18px;margin-bottom:10px}
+.opts{display:grid;gap:10px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;inset:0;cursor:pointer;width:100%;height:100%}
+.opt label{display:block;background:var(--card);border:1.5px solid var(--line);border-radius:8px;padding:12px 16px;cursor:pointer}
+.opt label small{display:block;color:var(--mute);font-size:14px}
+.opt input:checked+label{border-color:var(--ink);box-shadow:4px 4px 0 var(--mark)}
+.opt input:focus-visible+label{outline:3px solid var(--ink);outline-offset:3px}
+.result{position:sticky;top:20px;background:var(--ink);color:#fff;border-radius:12px;padding:28px}
+.result small{color:#B8C9C1}
+.price{font-family:"JetBrains Mono",monospace;font-size:clamp(26px,4vw,36px);font-weight:700;margin:6px 0 12px;color:var(--mark)}
+.result p{font-size:15px;color:#B8C9C1;margin-bottom:18px}
+.result .btn{background:var(--mark);color:var(--ink);display:block;text-align:center;margin-bottom:10px}
+.result .btn.alt{background:transparent;color:#fff;border-color:#fff}
+.result .btn.alt:hover{background:#fff;color:var(--ink)}
+.note{margin-top:18px;color:var(--mute);font-size:15px}
+@media(max-width:860px){.calc{grid-template-columns:1fr}.result{position:static}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<a class="brand" href="index.html"><span>&lt;/&gt;</span>Tech Fix Studio</a>
+<nav aria-label="เมนูหลัก"><a href="index.html#services">บริการ</a><a href="index.html#process">ขั้นตอนทำงาน</a><a href="pricing.html" aria-current="page" style="color:var(--ink);font-weight:700">คำนวณค่าบริการ</a><a href="account.html">สมาชิก</a><a href="index.html#contact">ติดต่อ</a></nav>
+<a class="btn" href="https://t.me/qplynnnz" target="_blank" rel="noopener">ทักทาง Telegram</a>
+</div></header>
+<main>
+<div class="hero" style="padding-bottom:24px"><div class="wrap" style="display:block">
+<h1>คำนวณค่าบริการ <mark>฿5 – ฿5,000</mark></h1>
+<p>เลือกประเภทงาน ความซับซ้อน และความเร่งด่วน ระบบจะประเมินช่วงราคาให้ทันที ราคาจริงขึ้นอยู่กับลักษณะงาน และยืนยันอีกครั้งหลังคุยรายละเอียด</p>
+</div></div>
+<section style="border-top:0;padding-top:24px"><div class="wrap"><div class="calc">
+<div>
+<fieldset><legend>1. ประเภทงาน</legend><div class="opts">
+<div class="opt"><input type="radio" name="t" id="t1" value="100" checked><label for="t1">แก้บัคเว็บไซต์<small>หน้าพัง ฟอร์มไม่ส่ง แสดงผลเพี้ยน</small></label></div>
+<div class="opt"><input type="radio" name="t" id="t2" value="100"><label for="t2">แก้ปัญหาโค้ดดิ้ง<small>โค้ดทำงานผิด เพิ่มฟีเจอร์</small></label></div>
+<div class="opt"><input type="radio" name="t" id="t3" value="300"><label for="t3">ฐานข้อมูล<small>คิวรีช้า ย้ายข้อมูล ออกแบบตาราง</small></label></div>
+<div class="opt"><input type="radio" name="t" id="t4" value="1500"><label for="t4">สร้างเว็บไซต์<small>เว็บบริษัท แลนดิ้งเพจ</small></label></div>
+<div class="opt"><input type="radio" name="t" id="t5" value="3000"><label for="t5">แพลตฟอร์มขายของออนไลน์<small>ตะกร้า ชำระเงิน สต็อก ออเดอร์</small></label></div>
+<div class="opt"><input type="radio" name="t" id="t6" value="100"><label for="t6">งานเทคอื่น ๆ<small>เชื่อม API ตั้งค่าโดเมน ระบบอัตโนมัติ</small></label></div>
+</div></fieldset>
+<fieldset><legend>2. ความซับซ้อนของงาน</legend><div class="opts">
+<div class="opt"><input type="radio" name="c" id="c1" value="0.05"><label for="c1">เล็กน้อย<small>แก้จุดเดียว ใช้เวลาไม่นาน</small></label></div>
+<div class="opt"><input type="radio" name="c" id="c2" value="0.6" checked><label for="c2">ปานกลาง<small>หลายจุด หรือต้องเขียนเพิ่มบางส่วน</small></label></div>
+<div class="opt"><input type="radio" name="c" id="c3" value="1.2"><label for="c3">ซับซ้อน<small>หลายระบบเชื่อมกัน ต้องออกแบบใหม่</small></label></div>
+</div></fieldset>
+<fieldset><legend>3. ความเร่งด่วน</legend><div class="opts">
+<div class="opt"><input type="radio" name="u" id="u1" value="1" checked><label for="u1">ปกติ<small>ตามคิวงาน</small></label></div>
+<div class="opt"><input type="radio" name="u" id="u2" value="1.3"><label for="u2">ด่วน<small>ต้องการภายใน 24 ชั่วโมง</small></label></div>
+</div></fieldset>
+</div>
+<aside class="result" aria-live="polite">
+<small>ราคาประเมิน</small>
+<div class="price" id="price">฿–</div>
+<p id="hint"></p>
+<a class="btn" id="tg" href="https://t.me/qplynnnz" target="_blank" rel="noopener">ส่งรายละเอียดทาง Telegram</a>
+<a class="btn alt" href="tel:+6661126882">โทร +6661126882</a>
+</aside>
+</div>
+<p class="note">ช่วงราคาเริ่มต้นที่ 5 บาท และสูงสุดที่ประมาณ 5,000 บาท เป็นการประเมินเบื้องต้นเท่านั้น ราคาสุดท้ายขึ้นอยู่กับลักษณะงานจริง ติดต่อ <b>@qplynnnz</b> หรือโทร <b>+6661126882</b></p>
+</div></section>
+</main>
+<footer><div class="wrap">© 2026 Tech Fix Studio · รับแก้บัคเว็บไซต์ สร้างเว็บ และงานเทค</div></footer>
+<script>
+const $=n=>document.querySelector('input[name='+n+']:checked');
+const names={t:{t1:'แก้บัคเว็บไซต์',t2:'แก้ปัญหาโค้ดดิ้ง',t3:'ฐานข้อมูล',t4:'สร้างเว็บไซต์',t5:'แพลตฟอร์มขายของออนไลน์',t6:'งานเทคอื่น ๆ'},c:{c1:'เล็กน้อย',c2:'ปานกลาง',c3:'ซับซ้อน'},u:{u1:'ปกติ',u2:'ด่วน'}};
+const r5=x=>Math.round(x/5)*5,fmt=x=>'฿'+x.toLocaleString('th-TH');
+function calc(){
+ const raw=$('t').value*$('c').value*$('u').value;
+ const mid=Math.min(5000,Math.max(5,raw));
+ const lo=Math.max(5,r5(mid*.8)),hi=Math.min(5000,Math.max(lo,r5(mid*1.2)));
+ document.getElementById('price').textContent=lo===hi?fmt(lo):fmt(lo)+' – '+fmt(hi);
+ document.getElementById('hint').textContent='ราคาจริงขึ้นอยู่กับลักษณะงาน ยืนยันหลังคุยรายละเอียด';
+ const msg='สนใจบริการ: '+names.t[$('t').id]+' / ความซับซ้อน: '+names.c[$('c').id]+' / '+names.u[$('u').id]+' / ราคาประเมิน '+document.getElementById('price').textContent;
+ document.getElementById('tg').href='https://t.me/qplynnnz?text='+encodeURIComponent(msg);
+}
+document.querySelectorAll('input[type=radio]').forEach(i=>i.addEventListener('change',calc));
+calc();
+</script>
+</body>
+</html>
