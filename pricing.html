@@ -91,13 +91,13 @@ legend{font-weight:700;font-size:18px;margin-bottom:10px}
 .result .btn.alt:hover{background:#fff;color:var(--ink)}
 .note{margin-top:18px;color:var(--mute);font-size:15px}
 @media(max-width:860px){.calc{grid-template-columns:1fr}.result{position:static}}
-</style>
+.btn.hd{white-space:nowrap;padding:9px 18px;font-size:15px}@media(max-width:560px){.btn.hd{padding:8px 12px;font-size:14px}.brand{font-size:16px}}</style>
 </head>
 <body>
 <header><div class="wrap">
 <a class="brand" href="index.html"><span>&lt;/&gt;</span>Tech Fix Studio</a>
 <nav aria-label="เมนูหลัก"><a href="index.html#services">บริการ</a><a href="index.html#process">ขั้นตอนทำงาน</a><a href="pricing.html" aria-current="page" style="color:var(--ink);font-weight:700">คำนวณค่าบริการ</a><a href="account.html">สมาชิก</a><a href="index.html#contact">ติดต่อ</a></nav>
-<a class="btn" href="https://t.me/qplynnnz" target="_blank" rel="noopener">ทักทาง Telegram</a>
+<a class="btn hd" id="hdr-login" href="account.html">ลงชื่อเข้าใช้ / สมัครใช้งาน</a>
 </div></header>
 <main>
 <div class="hero" style="padding-bottom:24px"><div class="wrap" style="display:block">
@@ -152,5 +152,6 @@ function calc(){
 document.querySelectorAll('input[type=radio]').forEach(i=>i.addEventListener('change',calc));
 calc();
 </script>
+<script>try{if(Object.keys(localStorage).some(function(k){return/^sb-.+-auth-token$/.test(k)})){var b=document.getElementById("hdr-login");if(b)b.textContent="บัญชีของฉัน"}}catch(e){}</script>
 </body>
 </html>
