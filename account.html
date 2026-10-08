@@ -15,8 +15,9 @@
 <body>
 <header><div class="wrap">
 <a class="brand" href="index.html"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#03100A" stroke="#00FF9C" stroke-width="2"/><path d="M9 11l6 5-6 5" stroke="#00FF9C" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 22h6" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>Tech Fix Studio</a>
-<nav aria-label="เมนูหลัก"><a href="index.html#services">บริการ</a><a href="pricing.html">คำนวณค่าบริการ</a><a href="index.html#contact">ติดต่อ</a></nav>
-<a class="btn hd" id="hdr-login" href="account.html">ลงชื่อเข้าใช้ / สมัครใช้งาน</a>
+<nav id="site-nav" aria-label="เมนูหลัก"><a href="index.html#services">บริการ</a><a href="pricing.html">คำนวณค่าบริการ</a><a href="index.html#contact">ติดต่อ</a></nav>
+<a class="btn hd" id="hdr-login" href="account.html">ลงชื่อเข้าใช้<span class="x"> / สมัครใช้งาน</span></a>
+<button class="menu-btn" id="menu-btn" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="site-nav"><span></span><span></span><span></span></button>
 </div></header>
 <main><section style="border-top:0"><div class="wrap">
 <div id="loading" class="msg warn">กำลังโหลดระบบสมาชิก...</div>
@@ -53,6 +54,7 @@
 <button role="tab" id="d1" aria-selected="true">เครดิตคงเหลือ</button>
 <button role="tab" id="d2" aria-selected="false">เติมเครดิต</button>
 <button role="tab" id="d3" aria-selected="false">ประวัติ</button>
+<button role="tab" id="d4" aria-selected="false">งานของฉัน</button>
 </div>
 
 <div id="p1">
@@ -76,6 +78,19 @@
 <div class="card plain"><h3>ประวัติรายการ</h3>
 <div style="overflow-x:auto"><table id="hist" style="width:100%;border-collapse:collapse;font-size:15px"></table></div>
 <p class="note" id="histempty" hidden>ยังไม่มีรายการ</p></div></div>
+
+<div id="p4" hidden>
+<div class="card plain"><h3>สั่งงานใหม่</h3>
+<p style="color:var(--mute);margin-bottom:14px">เล่าปัญหาหรืองานที่ต้องการ ทีมงานจะได้รับแจ้งทันที แล้วอัปเดตสถานะและข้อความในหน้านี้ เครดิตจะถูกหักตามราคาที่ตกลงกัน <b>ห้ามใส่รหัสผ่านหรือ API key ในแบบฟอร์ม</b></p>
+<label class="f">หัวข้องาน<input id="jt" maxlength="120"></label>
+<label class="f">รายละเอียด (อาการ ข้อความ error ขั้นตอนที่ทำให้เกิดปัญหา)<textarea id="jd" maxlength="4000"></textarea></label>
+<label class="f">ลิงก์ภาพ/ไฟล์/เว็บไซต์ (ไม่บังคับ)<input id="jl" type="url" maxlength="500" placeholder="https://..."></label>
+<label class="f">ช่องทางติดต่อกลับ เช่น Telegram หรือเบอร์โทร (ไม่บังคับ)<input id="jc" maxlength="200"></label>
+<div id="jmsg" class="msg" hidden role="alert"></div>
+<button class="btn" id="jsend" type="button">ส่งงาน</button></div>
+<h3 style="margin:28px 0 0">งานของฉัน</h3>
+<div id="joblist"></div>
+</div>
 </div>
 </div></section></main>
 <footer><div class="wrap">© 2026 Tech Fix Studio · @qplynnnz · +6661126882</div></footer>
@@ -89,7 +104,7 @@ const ok=cfg.url&&cfg.anonKey&&!/YOUR/.test(cfg.url+cfg.anonKey);
 let sb=null,mode='in',recovering=false;
 function msg(t,c){const m=$('authmsg');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
 function setMode(m){mode=m;$('tab-in').setAttribute('aria-selected',m==='in');$('tab-up').setAttribute('aria-selected',m==='up');$('go').textContent=m==='in'?'เข้าสู่ระบบ':m==='up'?'สมัครสมาชิก':'ส่งลิงก์ตั้งรหัสผ่านใหม่';$('pw').autocomplete=m==='in'?'current-password':'new-password';$('pwl').hidden=m==='reset';$('forgot').hidden=m!=='in';msg('')}
-function tab(n){['1','2','3'].forEach(i=>{$('d'+i).setAttribute('aria-selected',i===n);$('p'+i).hidden=i!==n});if(n==='3')loadHist()}
+function tab(n){['1','2','3','4'].forEach(i=>{$('d'+i).setAttribute('aria-selected',i===n);$('p'+i).hidden=i!==n});if(n==='3')loadHist();if(n==='4')loadJobs()}
 async function credits(){const{data,error}=await sb.from('profiles').select('credits').maybeSingle();$('bal').textContent=error||!data?'–':Number(data.credits).toLocaleString('th-TH')+' เครดิต'}
 function view(session){if(recovering)return;$('loading').hidden=true;$('auth').hidden=!!session;$('dash').hidden=!session;if(session){$('who').textContent=session.user.email;$('myemail').textContent=session.user.email;credits()}}
 async function submit(){
@@ -138,6 +153,7 @@ function watch(){
 }
 $('paybtn').onclick=pay;
 $('d3').onclick=()=>tab('3');
+$('d4').onclick=()=>tab('4');$('jsend').onclick=sendJob;
 $('forgot').onclick=e=>{e.preventDefault();setMode('reset')};
 function rmsg(t,c){const m=$('recmsg');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
 async function savePw(){
@@ -149,6 +165,35 @@ async function savePw(){
  const{data}=await sb.auth.getSession();view(data.session);
 }
 $('savepw').onclick=savePw;
+
+const JST={new:'รอตอบรับ',doing:'กำลังทำ',done:'เสร็จแล้ว',cancelled:'ยกเลิก'};
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function jmsg(t,c){const m=$('jmsg');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
+async function sendJob(){
+ const title=$('jt').value.trim(),details=$('jd').value.trim(),link=$('jl').value.trim(),contact=$('jc').value.trim();
+ if(title.length<3||details.length<5){jmsg('กรอกหัวข้ออย่างน้อย 3 ตัวอักษร และรายละเอียดอย่างน้อย 5 ตัวอักษร','err');return}
+ $('jsend').disabled=true;jmsg('กำลังส่งงาน...');
+ try{
+  const{data}=await sb.auth.getSession();
+  const r=await fetch('/api/create-job',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify({title,details,link,contact})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||'ส่งงานไม่สำเร็จ');
+  ['jt','jd','jl','jc'].forEach(i=>$(i).value='');jmsg('ส่งงานเรียบร้อยแล้ว ทีมงานได้รับแจ้งเตือนแล้ว','ok');loadJobs();
+ }catch(e){jmsg(e.message,'err')}
+ $('jsend').disabled=false;
+}
+async function loadJobs(){
+ const box=$('joblist');box.textContent='';
+ const{data,error}=await sb.from('jobs').select('title,status,price_credits,charged,admin_note,created_at').order('created_at',{ascending:false}).limit(50);
+ if(error||!data||!data.length){box.append(el('p','note',error?'โหลดรายการงานไม่สำเร็จ':'ยังไม่มีงาน'));return}
+ data.forEach(j=>{
+  const c=el('div','job'),top=el('div','top');
+  top.append(el('h4',null,j.title),el('span','badge '+j.status,JST[j.status]||j.status));c.append(top);
+  c.append(el('div','meta',new Date(j.created_at).toLocaleString('th-TH')+(j.charged?' · หักเครดิตแล้ว '+Number(j.price_credits).toLocaleString('th-TH'):'')));
+  if(j.admin_note)c.append(el('div','note2',j.admin_note));
+  box.append(c);
+ });
+}
 async function loadHist(){
  const t=$('hist');t.textContent='';$('histempty').hidden=true;
  const[a,b]=await Promise.all([
@@ -173,5 +218,6 @@ else{
 }
 </script>
 <script>try{if(Object.keys(localStorage).some(function(k){return/^sb-.+-auth-token$/.test(k)})){var b=document.getElementById("hdr-login");if(b)b.textContent="บัญชีของฉัน"}}catch(e){}</script>
+<script src="site.js" defer></script>
 </body>
 </html>

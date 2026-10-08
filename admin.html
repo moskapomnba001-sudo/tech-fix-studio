@@ -14,13 +14,14 @@
 </head>
 <body>
 <header><div class="wrap"><a class="brand" href="index.html"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#03100A" stroke="#00FF9C" stroke-width="2"/><path d="M9 11l6 5-6 5" stroke="#00FF9C" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 22h6" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>Tech Fix Studio</a><a class="btn alt" href="account.html">หน้าสมาชิก</a></div></header>
-<main><section style="border-top:0"><div class="wrap" style="max-width:560px">
+<main><section style="border-top:0"><div class="wrap" style="max-width:900px">
 <h2>แอดมิน: ปรับเครดิตสมาชิก</h2>
 <div id="loading" class="msg warn">กำลังโหลด...</div>
 <div id="fatal" class="msg err" hidden></div>
 <div id="nologin" class="msg warn" hidden>กรุณาเข้าสู่ระบบที่ <a href="account.html">หน้าสมาชิก</a> ด้วยบัญชีแอดมินก่อน แล้วกลับมาหน้านี้</div>
 <div id="forbidden" class="msg err" hidden>บัญชีนี้ไม่มีสิทธิ์แอดมิน</div>
 <div id="panel" hidden>
+<div style="max-width:560px">
 <label class="f">อีเมลสมาชิก<input id="em" type="email" autocomplete="off"></label>
 <button class="btn alt" id="look" type="button">ดูยอดคงเหลือ</button>
 <p style="margin:14px 0 22px">ยอดคงเหลือ: <span class="bal" id="bal">–</span></p>
@@ -28,6 +29,11 @@
 <label class="f">หมายเหตุ (เช่น งานแก้บัคหน้าชำระเงิน)<input id="note" type="text" maxlength="200"></label>
 <div id="out" class="msg" hidden role="alert"></div>
 <div class="cta"><button class="btn" id="ded" type="button">หักเครดิต</button><button class="btn alt" id="add" type="button">เพิ่มเครดิต</button></div>
+</div>
+<h2 style="margin-top:56px">รายการงานจากลูกค้า</h2>
+<div id="jobsmsg" class="msg" hidden role="alert"></div>
+<div class="row" style="margin-bottom:8px"><button class="btn alt" id="jobsreload" type="button">รีเฟรชรายการ</button></div>
+<div id="jobs"></div>
 </div></div></section></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
@@ -37,12 +43,53 @@ const cfg=window.SITE_CONFIG||{};
 const show=id=>{['loading','fatal','nologin','forbidden','panel'].forEach(x=>$(x).hidden=x!==id)};
 function out(t,c){const m=$('out');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
 let sb;
-async function call(body){
+async function call(body,url){
  const{data}=await sb.auth.getSession();if(!data.session){const e=new Error('nologin');e.status=401;throw e}
- const r=await fetch('/api/admin-credit',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify(body)});
+ const r=await fetch(url||'/api/admin-credit',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify(body)});
  const j=await r.json().catch(()=>({}));
  if(!r.ok){const e=new Error(j.error||'เกิดข้อผิดพลาด');e.status=r.status;throw e}
  return j;
+}
+
+const SL={new:'รอตอบรับ',doing:'กำลังทำ',done:'เสร็จแล้ว',cancelled:'ยกเลิก'};
+const API_JOBS='/api/admin-jobs';
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function jm(t,c){const m=$('jobsmsg');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
+async function loadJobs(){
+ const box=$('jobs');
+ try{
+  const j=await call({action:'list'},API_JOBS);box.textContent='';
+  if(!j.jobs.length){box.append(el('p','note','ยังไม่มีงานจากลูกค้า'));return}
+  j.jobs.forEach(job=>box.append(jobCard(job)));
+ }catch(e){jm(e.message,'err')}
+}
+function jobCard(job){
+ const email=(job.profiles&&job.profiles.email)||'-',c=el('div','job'),top=el('div','top');
+ const badge=el('span','badge '+job.status,SL[job.status]||job.status);
+ top.append(el('h4',null,job.title),badge);c.append(top);
+ c.append(el('div','meta',email+' · '+new Date(job.created_at).toLocaleString('th-TH')+(job.charged?' · หักแล้ว '+job.price_credits+' เครดิต':'')));
+ c.append(el('p',null,job.details));
+ if(job.link&&/^https?:\/\//i.test(job.link)){const a=el('a',null,job.link);a.href=job.link;a.target='_blank';a.rel='noopener noreferrer nofollow';const m=el('div','meta');m.append('ลิงก์: ',a);c.append(m)}
+ if(job.contact)c.append(el('div','meta','ติดต่อกลับ: '+job.contact));
+ const ctl=el('div','ctl'),sel=el('select');
+ Object.keys(SL).forEach(k=>{const o=el('option',null,SL[k]);o.value=k;if(k===job.status)o.selected=true;sel.append(o)});
+ const note=el('input');note.type='text';note.maxLength=500;note.placeholder='ข้อความถึงลูกค้า (ไม่บังคับ)';note.value=job.admin_note||'';note.style.flex='1 1 200px';
+ const save=el('button','btn alt','บันทึกสถานะ');save.type='button';
+ save.onclick=async()=>{save.disabled=true;try{await call({action:'status',id:job.id,status:sel.value,note:note.value},API_JOBS);badge.className='badge '+sel.value;badge.textContent=SL[sel.value];jm('บันทึกสถานะแล้ว','ok')}catch(e){jm(e.message,'err')}save.disabled=false};
+ ctl.append(sel,note,save);c.append(ctl);
+ if(!job.charged){
+  const c2=el('div','ctl'),n=el('input');n.type='number';n.min=1;n.step=1;n.placeholder='เครดิตที่จะหัก';n.inputMode='numeric';
+  const ch=el('button','btn','หักเครดิตงานนี้');ch.type='button';
+  ch.onclick=async()=>{
+   const v=Number(n.value);if(!Number.isInteger(v)||v<1){jm('กรอกจำนวนเครดิตเป็นจำนวนเต็ม','err');return}
+   if(!confirm('หัก '+v.toLocaleString('th-TH')+' เครดิต จาก '+email+' สำหรับงาน "'+job.title+'" ใช่หรือไม่?'))return;
+   ch.disabled=true;
+   try{const r=await call({action:'charge',id:job.id,credits:v},API_JOBS);jm('หักเครดิตสำเร็จ ยอดคงเหลือใหม่ '+fmt(r.credits),'ok');loadJobs()}
+   catch(e){jm(e.message,'err');ch.disabled=false}
+  };
+  c2.append(n,ch);c.append(c2);
+ }
+ return c;
 }
 const fmt=n=>Number(n).toLocaleString('th-TH')+' เครดิต';
 async function look(){
@@ -63,7 +110,8 @@ async function adjust(type){
  if(!cfg.url||!cfg.anonKey||/YOUR/.test(cfg.url+cfg.anonKey)||!window.supabase){$('fatal').textContent='ตั้งค่า config.js ไม่ถูกต้อง หรือโหลด Supabase ไม่ได้';show('fatal');return}
  sb=supabase.createClient(cfg.url,cfg.anonKey);
  $('look').onclick=look;$('ded').onclick=()=>adjust('deduct');$('add').onclick=()=>adjust('add');
- try{await call({action:'check'});show('panel')}
+ $('jobsreload').onclick=loadJobs;
+ try{await call({action:'check'});show('panel');loadJobs()}
  catch(e){if(e.status===403)show('forbidden');else if(e.status===401)show('nologin');else{$('fatal').textContent=e.message;show('fatal')}}
 })();
 </script>
