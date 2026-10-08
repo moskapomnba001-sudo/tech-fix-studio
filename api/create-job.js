@@ -1,5 +1,5 @@
 // POST /api/create-job { title, details, link? } + Authorization: Bearer <token>
-const { readRaw, send, supa, getUser, notify } = require('./_lib');
+const { readRaw, send, supa, getUser, notify, notifyAdmins } = require('./_lib');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
@@ -21,6 +21,7 @@ module.exports = async (req, res) => {
     const r = await supa('/rest/v1/jobs', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ user_id: user.id, title, details, link: link || null, contact: contact || null }) });
     if (!r.ok) { console.error('create job failed', r.status, await r.text()); return send(res, 500, { error: 'สร้างงานไม่สำเร็จ' }); }
     const job = (await r.json())[0];
+    await notifyAdmins('job_new', 'งานใหม่: ' + title, (user.email || user.id) + (contact ? ' · ' + contact : ''), '/admin.html');
     await notify('📥 งานใหม่\nจาก: ' + (user.email || user.id) + '\nหัวข้อ: ' + title + (link ? '\nลิงก์: ' + link : '') + (contact ? '\nติดต่อกลับ: ' + contact : '') + '\n\nเปิดหน้าแอดมินเพื่อดูรายละเอียด');
     return send(res, 200, { id: job.id });
   } catch (e) { console.error(e); return send(res, 500, { error: 'ระบบขัดข้อง กรุณาลองใหม่' }); }

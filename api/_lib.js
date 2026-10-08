@@ -58,13 +58,27 @@ async function notify(text) {
   } catch (e) { console.error('telegram notify failed'); }
 }
 
+function adminIds() { return (process.env.ADMIN_USER_IDS || '').split(',').map(x => x.trim()).filter(Boolean); }
+function isAdmin(user) { return !!user && adminIds().includes(user.id); }
+
+// สร้างแจ้งเตือนในเว็บ (กระดิ่ง) ให้ผู้ใช้หนึ่งคนหรือหลายคน ถ้าพลาดไม่ทำให้งานหลักพัง
+async function notifyUsers(ids, kind, title, body, link) {
+  ids = Array.from(new Set(ids)).filter(Boolean);
+  if (!ids.length) return;
+  try {
+    const r = await supa('/rest/v1/notifications', { method: 'POST', body: JSON.stringify(ids.map(id => ({ user_id: id, kind, title: String(title).slice(0, 160), body: String(body || '').slice(0, 300), link: link || null }))) });
+    if (!r.ok) console.error('in-app notify failed', r.status);
+  } catch (e) { console.error('in-app notify failed'); }
+}
+const notifyUser = (id, ...a) => notifyUsers([id], ...a);
+const notifyAdmins = (...a) => notifyUsers(adminIds(), ...a);
+
 // ตรวจว่าผู้เรียกเป็นแอดมิน (user id อยู่ใน ADMIN_USER_IDS) ถ้าไม่ใช่จะตอบกลับเองและคืน null
 async function requireAdmin(req, res) {
   const user = await getUser(req);
   if (!user) { send(res, 401, { error: 'กรุณาเข้าสู่ระบบ' }); return null; }
-  const admins = (process.env.ADMIN_USER_IDS || '').split(',').map(x => x.trim()).filter(Boolean);
-  if (!admins.includes(user.id)) { send(res, 403, { error: 'ไม่มีสิทธิ์แอดมิน' }); return null; }
+  if (!isAdmin(user)) { send(res, 403, { error: 'ไม่มีสิทธิ์แอดมิน' }); return null; }
   return user;
 }
 
-module.exports = { AMOUNTS, env, readRaw, send, supa, verifySignature, getUser, notify, requireAdmin };
+module.exports = { AMOUNTS, env, readRaw, send, supa, verifySignature, getUser, notify, requireAdmin, isAdmin, adminIds, notifyUser, notifyUsers, notifyAdmins };
