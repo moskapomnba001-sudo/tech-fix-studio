@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><div class="wrap"><a class="brand" href="index.html"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#03100A" stroke="#00FF9C" stroke-width="2"/><path d="M9 11l6 5-6 5" stroke="#00FF9C" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 22h6" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>Tech Fix Studio</a><a class="btn alt" href="account.html">หน้าสมาชิก</a></div></header>
+<header><div class="wrap"><a class="brand" href="index.html"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#03100A" stroke="#00FF9C" stroke-width="2"/><path d="M9 11l6 5-6 5" stroke="#00FF9C" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 22h6" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg><span class="bt">Tech Fix Studio</span></a><a class="btn alt" href="account.html">หน้าสมาชิก</a></div></header>
 <main><section style="border-top:0"><div class="wrap" style="max-width:900px">
 <h2>แอดมิน: ปรับเครดิตสมาชิก</h2>
 <div id="loading" class="msg warn">กำลังโหลด...</div>
@@ -63,6 +63,29 @@ async function loadJobs(){
   j.jobs.forEach(job=>box.append(jobCard(job)));
  }catch(e){jm(e.message,'err')}
 }
+function bubble(m){const b=el('div','bubble '+(m.sender_role==='admin'?'me':'them'));b.append(el('div','who',m.sender_role==='admin'?'ทีมงาน':'ลูกค้า'),el('div','txt',m.body),el('div','ts',new Date(m.created_at).toLocaleString('th-TH')));return b}
+function adminThread(job){
+ const box=el('div','thread'),list=el('div','msgs');box.hidden=true;
+ const ta=el('textarea');ta.maxLength=2000;ta.rows=2;ta.placeholder='พิมพ์ข้อความถึงลูกค้า (ลูกค้าจะเห็นในแท็บ "งานของฉัน" และมีแจ้งเตือนที่กระดิ่ง)';
+ const send=el('button','btn','ส่งข้อความ');send.type='button';const st=el('div','msg');st.hidden=true;
+ async function load(){
+  try{const j=await call({action:'messages',id:job.id},API_JOBS);list.textContent='';
+   if(!j.messages.length)list.append(el('p','note','ยังไม่มีข้อความ'));
+   j.messages.forEach(m=>list.append(bubble(m)));list.scrollTop=list.scrollHeight}
+  catch(e){list.textContent='';list.append(el('p','note',e.message))}
+ }
+ send.onclick=async()=>{
+  const body=ta.value.trim();if(!body)return;send.disabled=true;st.hidden=true;
+  try{
+   const{data}=await sb.auth.getSession();
+   const r=await fetch('/api/job-message',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify({job_id:job.id,body})});
+   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'ส่งข้อความไม่สำเร็จ');
+   ta.value='';await load();
+  }catch(e){st.textContent=e.message;st.className='msg err';st.hidden=false}
+  send.disabled=false;
+ };
+ box.append(list,ta,send,st);box.load=load;return box;
+}
 function jobCard(job){
  const email=(job.profiles&&job.profiles.email)||'-',c=el('div','job'),top=el('div','top');
  const badge=el('span','badge '+job.status,SL[job.status]||job.status);
@@ -73,7 +96,7 @@ function jobCard(job){
  if(job.contact)c.append(el('div','meta','ติดต่อกลับ: '+job.contact));
  const ctl=el('div','ctl'),sel=el('select');
  Object.keys(SL).forEach(k=>{const o=el('option',null,SL[k]);o.value=k;if(k===job.status)o.selected=true;sel.append(o)});
- const note=el('input');note.type='text';note.maxLength=500;note.placeholder='ข้อความถึงลูกค้า (ไม่บังคับ)';note.value=job.admin_note||'';note.style.flex='1 1 200px';
+ const note=el('input');note.type='text';note.maxLength=500;note.placeholder='หมายเหตุสถานะที่ลูกค้าเห็น (ไม่บังคับ)';note.value=job.admin_note||'';note.style.flex='1 1 200px';
  const save=el('button','btn alt','บันทึกสถานะ');save.type='button';
  save.onclick=async()=>{save.disabled=true;try{await call({action:'status',id:job.id,status:sel.value,note:note.value},API_JOBS);badge.className='badge '+sel.value;badge.textContent=SL[sel.value];jm('บันทึกสถานะแล้ว','ok')}catch(e){jm(e.message,'err')}save.disabled=false};
  ctl.append(sel,note,save);c.append(ctl);
@@ -89,6 +112,9 @@ function jobCard(job){
   };
   c2.append(n,ch);c.append(c2);
  }
+ const th=adminThread(job),tb=el('button','btn alt','เปิดแชตกับลูกค้า');tb.type='button';
+ tb.onclick=()=>{th.hidden=!th.hidden;if(!th.hidden)th.load()};
+ const row=el('div','ctl');row.append(tb);c.append(row,th);
  return c;
 }
 const fmt=n=>Number(n).toLocaleString('th-TH')+' เครดิต';

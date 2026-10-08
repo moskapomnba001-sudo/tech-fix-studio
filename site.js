@@ -85,3 +85,107 @@
     b.addEventListener('click', openPal); fw.append(b);
   }
 })();
+
+/* ===== กระดิ่งแจ้งเตือน + ลิงก์แอดมิน (แสดงเฉพาะตอนล็อกอิน) ===== */
+(function () {
+  var d = document, CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  var has = false;
+  try { has = Object.keys(localStorage).some(function (k) { return /^sb-.+-auth-token$/.test(k); }); } catch (e) {}
+  var login = d.getElementById('hdr-login'), hd = d.querySelector('header');
+  if (!has || !login || !hd) return;
+
+  function el(tag, cls, txt) { var e = d.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function loadScript(src) { return new Promise(function (ok, no) { var s = d.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; d.head.appendChild(s); }); }
+  function ago(t) {
+    var s = (Date.now() - new Date(t).getTime()) / 1000;
+    if (s < 60) return 'เมื่อสักครู่';
+    if (s < 3600) return Math.floor(s / 60) + ' นาทีที่แล้ว';
+    if (s < 86400) return Math.floor(s / 3600) + ' ชั่วโมงที่แล้ว';
+    return new Date(t).toLocaleDateString('th-TH');
+  }
+  var sb = null, uid = null, bell, btn, badge, panel, listEl;
+
+  function build() {
+    bell = el('div', 'bell');
+    btn = el('button', 'bell-btn'); btn.type = 'button';
+    btn.setAttribute('aria-label', 'การแจ้งเตือน'); btn.setAttribute('aria-haspopup', 'true'); btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+    badge = el('span', 'bell-badge'); badge.hidden = true; btn.appendChild(badge);
+    panel = el('div', 'bell-panel'); panel.hidden = true; panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', 'การแจ้งเตือน');
+    var head = el('div', 'bell-head'), all = el('button', null, 'อ่านทั้งหมด'); all.type = 'button'; all.onclick = markAll;
+    head.append(el('b', null, 'การแจ้งเตือน'), all);
+    listEl = el('ul'); panel.append(head, listEl); bell.append(btn, panel);
+    var wrap = el('div', 'hd-right'); login.parentNode.insertBefore(wrap, login); wrap.append(bell, login);
+    hd.classList.add('has-bell');
+    btn.onclick = function (e) { e.stopPropagation(); toggle(); };
+    d.addEventListener('click', function (e) { if (!panel.hidden && !bell.contains(e.target)) toggle(false); });
+    d.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) toggle(false); });
+  }
+  function toggle(o) {
+    var open = typeof o === 'boolean' ? o : panel.hidden;
+    panel.hidden = !open; btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) refresh();
+  }
+  async function refresh() {
+    try {
+      var r = await sb.from('notifications').select('id,kind,title,body,link,is_read,created_at').order('created_at', { ascending: false }).limit(20);
+      if (!r.error) render(r.data || []);
+    } catch (e) {}
+  }
+  function render(items) {
+    var n = items.filter(function (i) { return !i.is_read; }).length;
+    badge.hidden = !n; badge.textContent = n >= 20 ? '20+' : String(n);
+    btn.setAttribute('aria-label', 'การแจ้งเตือน' + (n ? ' ยังไม่ได้อ่าน ' + n + ' รายการ' : ''));
+    listEl.textContent = '';
+    if (!items.length) { listEl.append(el('li', 'bell-empty', 'ยังไม่มีการแจ้งเตือน')); return; }
+    items.forEach(function (i) {
+      var li = el('li', 'bell-item nk-' + i.kind + (i.is_read ? '' : ' unread'));
+      li.tabIndex = 0; li.setAttribute('role', 'button');
+      li.append(el('div', 't', i.title));
+      if (i.body) li.append(el('div', 'b', i.body));
+      li.append(el('div', 'ts', ago(i.created_at)));
+      li.onclick = function () { openItem(i); };
+      li.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openItem(i); } };
+      listEl.append(li);
+    });
+  }
+  async function openItem(i) {
+    try { if (!i.is_read) await sb.from('notifications').update({ is_read: true }).eq('id', i.id); } catch (e) {}
+    toggle(false);
+    if (typeof i.link === 'string' && /^\/(?!\/)/.test(i.link)) location.assign(i.link); else refresh();
+  }
+  async function markAll() {
+    try { await sb.from('notifications').update({ is_read: true }).eq('is_read', false); } catch (e) {}
+    refresh();
+  }
+  async function checkAdmin() {
+    var key = 'adm:' + uid, c = null, ok;
+    try { c = JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (e) {}
+    if (c && Date.now() - c.t < 600000) ok = c.v;
+    else {
+      try {
+        var s = (await sb.auth.getSession()).data.session;
+        var r = await fetch('/api/admin-credit', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.access_token }, body: '{"action":"check"}' });
+        ok = r.ok; try { sessionStorage.setItem(key, JSON.stringify({ v: ok, t: Date.now() })); } catch (e) {}
+      } catch (e) { return; }
+    }
+    var nv = d.getElementById('site-nav');
+    if (ok && nv && !nv.querySelector('[data-admin]')) { var a = el('a', null, 'แอดมิน'); a.href = '/admin.html'; a.setAttribute('data-admin', '1'); nv.append(a); }
+  }
+  (async function () {
+    try {
+      if (window.__sb) sb = window.__sb;
+      else {
+        if (!window.supabase) await loadScript(CDN);
+        if (!window.SITE_CONFIG) await loadScript('/config.js');
+        var c = window.SITE_CONFIG || {};
+        if (!c.url || !c.anonKey || /YOUR/.test(c.url + c.anonKey)) return;
+        sb = window.__sb = window.supabase.createClient(c.url, c.anonKey);
+      }
+      var s = (await sb.auth.getSession()).data.session; if (!s) return;
+      uid = s.user.id; build(); refresh(); checkAdmin();
+      setInterval(function () { if (!d.hidden) refresh(); }, 60000);
+      d.addEventListener('visibilitychange', function () { if (!d.hidden) refresh(); });
+    } catch (e) {}
+  })();
+})();

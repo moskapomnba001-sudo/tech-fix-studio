@@ -14,7 +14,7 @@
 </head>
 <body>
 <header><div class="wrap">
-<a class="brand" href="index.html"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#03100A" stroke="#00FF9C" stroke-width="2"/><path d="M9 11l6 5-6 5" stroke="#00FF9C" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 22h6" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>Tech Fix Studio</a>
+<a class="brand" href="index.html"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#03100A" stroke="#00FF9C" stroke-width="2"/><path d="M9 11l6 5-6 5" stroke="#00FF9C" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 22h6" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg><span class="bt">Tech Fix Studio</span></a>
 <nav id="site-nav" aria-label="เมนูหลัก"><a href="index.html#services">บริการ</a><a href="pricing.html">คำนวณค่าบริการ</a><a href="index.html#contact">ติดต่อ</a></nav>
 <a class="btn hd" id="hdr-login" href="account.html">ลงชื่อเข้าใช้<span class="x"> / สมัครใช้งาน</span></a>
 <button class="menu-btn" id="menu-btn" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="site-nav"><span></span><span></span><span></span></button>
@@ -182,16 +182,43 @@ async function sendJob(){
  }catch(e){jmsg(e.message,'err')}
  $('jsend').disabled=false;
 }
+function bubble(m,me){const b=el('div','bubble '+(m.sender_role===me?'me':'them'));b.append(el('div','who',m.sender_role==='admin'?'ทีมงาน':'ลูกค้า'),el('div','txt',m.body),el('div','ts',new Date(m.created_at).toLocaleString('th-TH')));return b}
+function thread(jobId,disabled){
+ const box=el('div','thread'),list=el('div','msgs');box.hidden=true;
+ const ta=el('textarea');ta.maxLength=2000;ta.rows=2;ta.placeholder='พิมพ์ข้อความถึงทีมงาน';
+ const send=el('button','btn','ส่งข้อความ');send.type='button';const st=el('div','msg');st.hidden=true;
+ async function load(){
+  const{data,error}=await sb.from('job_messages').select('sender_role,body,created_at').eq('job_id',jobId).order('created_at',{ascending:true}).limit(200);
+  list.textContent='';
+  if(error){list.append(el('p','note','โหลดข้อความไม่สำเร็จ'));return}
+  if(!data.length)list.append(el('p','note','ยังไม่มีข้อความ พิมพ์ถึงทีมงานได้เลย'));
+  data.forEach(m=>list.append(bubble(m,'customer')));list.scrollTop=list.scrollHeight;
+ }
+ send.onclick=async()=>{
+  const body=ta.value.trim();if(!body)return;send.disabled=true;st.hidden=true;
+  try{
+   const{data}=await sb.auth.getSession();
+   const r=await fetch('/api/job-message',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify({job_id:jobId,body})});
+   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'ส่งข้อความไม่สำเร็จ');
+   ta.value='';await load();
+  }catch(e){st.textContent=e.message;st.className='msg err';st.hidden=false}
+  send.disabled=false;
+ };
+ if(disabled){ta.disabled=true;send.disabled=true;ta.placeholder='งานนี้ถูกยกเลิกแล้ว'}
+ box.append(list,ta,send,st);box.load=load;return box;
+}
 async function loadJobs(){
  const box=$('joblist');box.textContent='';
- const{data,error}=await sb.from('jobs').select('title,status,price_credits,charged,admin_note,created_at').order('created_at',{ascending:false}).limit(50);
+ const{data,error}=await sb.from('jobs').select('id,title,status,price_credits,charged,admin_note,created_at').order('created_at',{ascending:false}).limit(50);
  if(error||!data||!data.length){box.append(el('p','note',error?'โหลดรายการงานไม่สำเร็จ':'ยังไม่มีงาน'));return}
  data.forEach(j=>{
   const c=el('div','job'),top=el('div','top');
   top.append(el('h4',null,j.title),el('span','badge '+j.status,JST[j.status]||j.status));c.append(top);
   c.append(el('div','meta',new Date(j.created_at).toLocaleString('th-TH')+(j.charged?' · หักเครดิตแล้ว '+Number(j.price_credits).toLocaleString('th-TH'):'')));
   if(j.admin_note)c.append(el('div','note2',j.admin_note));
-  box.append(c);
+  const th=thread(j.id,j.status==='cancelled'),tb=el('button','btn alt','แชตกับทีมงาน');tb.type='button';
+  tb.onclick=()=>{th.hidden=!th.hidden;if(!th.hidden)th.load()};
+  const row=el('div','ctl');row.append(tb);c.append(row,th);box.append(c);
  });
 }
 async function loadHist(){
@@ -210,10 +237,11 @@ if(!ok){$('loading').hidden=true;$('warn').hidden=false}
 else if(!window.supabase){fatal('โหลดไลบรารี Supabase ไม่สำเร็จ ตรวจอินเทอร์เน็ตหรือลองรีเฟรช')}
 else{
  try{
-  sb=supabase.createClient(cfg.url,cfg.anonKey);
+  sb=supabase.createClient(cfg.url,cfg.anonKey);window.__sb=sb;
   $('out').onclick=()=>sb.auth.signOut();$('refresh').onclick=credits;
   sb.auth.onAuthStateChange((ev,s)=>{if(ev==='PASSWORD_RECOVERY')recovering=true;setTimeout(()=>{if(ev==='PASSWORD_RECOVERY'){$('loading').hidden=true;$('auth').hidden=true;$('dash').hidden=true;$('recover').hidden=false;return}view(s)},0)});
-  sb.auth.getSession().then(({data})=>{view(data.session);if(data.session)watch()});
+  sb.auth.getSession().then(({data})=>{view(data.session);if(data.session){watch();if(location.hash==='#jobs')tab('4')}});
+ addEventListener('hashchange',()=>{if(location.hash==='#jobs'&&sb)tab('4')});
  }catch(e){fatal('ค่าใน config.js ไม่ถูกต้อง: '+e.message)}
 }
 </script>
