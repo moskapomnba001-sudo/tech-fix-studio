@@ -46,4 +46,25 @@ async function getUser(req) {
   return r.ok ? r.json() : null;
 }
 
-module.exports = { AMOUNTS, env, readRaw, send, supa, verifySignature, getUser };
+// แจ้งเตือนเข้า Telegram ของเจ้าของเว็บ (ไม่บังคับ: ถ้าไม่ได้ตั้งค่า token จะข้ามไปเฉยๆ และไม่ทำให้งานหลักพัง)
+async function notify(text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chat) return;
+  try {
+    await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chat, text: String(text).slice(0, 3500), disable_web_page_preview: true }),
+    });
+  } catch (e) { console.error('telegram notify failed'); }
+}
+
+// ตรวจว่าผู้เรียกเป็นแอดมิน (user id อยู่ใน ADMIN_USER_IDS) ถ้าไม่ใช่จะตอบกลับเองและคืน null
+async function requireAdmin(req, res) {
+  const user = await getUser(req);
+  if (!user) { send(res, 401, { error: 'กรุณาเข้าสู่ระบบ' }); return null; }
+  const admins = (process.env.ADMIN_USER_IDS || '').split(',').map(x => x.trim()).filter(Boolean);
+  if (!admins.includes(user.id)) { send(res, 403, { error: 'ไม่มีสิทธิ์แอดมิน' }); return null; }
+  return user;
+}
+
+module.exports = { AMOUNTS, env, readRaw, send, supa, verifySignature, getUser, notify, requireAdmin };

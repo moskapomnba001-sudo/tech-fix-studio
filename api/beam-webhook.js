@@ -1,5 +1,5 @@
 // POST /api/beam-webhook  (ตั้งใน Beam Lighthouse: event charge.succeeded)
-const { env, readRaw, send, supa, verifySignature } = require('./_lib');
+const { env, readRaw, send, supa, verifySignature, notify } = require('./_lib');
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 module.exports = async (req, res) => {
@@ -27,6 +27,14 @@ module.exports = async (req, res) => {
     if (!r.ok) { console.error('complete_topup failed', r.status, await r.text()); return send(res, 500, { error: 'retry' }); } // ให้ Beam ส่งซ้ำ
     const credited = await r.json();
     if (!credited) console.error('not credited (already paid, unknown ref, or amount mismatch)', e.chargeId, e.referenceId, baht);
+    else {
+      // แจ้งเตือน Telegram (ถ้าตั้งค่าไว้) ระบุอีเมลและยอดคงเหลือใหม่
+      try {
+        const t = await (await supa('/rest/v1/topups?select=user_id&id=eq.' + e.referenceId)).json();
+        const p = t[0] && await (await supa('/rest/v1/profiles?select=email,credits&id=eq.' + t[0].user_id)).json();
+        await notify('💰 เติมเครดิตสำเร็จ ฿' + baht.toLocaleString('en-US') + '\nสมาชิก: ' + ((p && p[0] && p[0].email) || '-') + '\nยอดคงเหลือ: ' + ((p && p[0] && p[0].credits) ?? '-'));
+      } catch (_) {}
+    }
     return send(res, 200, { ok: true, credited });
   } catch (err) {
     console.error(err);
