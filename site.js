@@ -83,13 +83,11 @@
     if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); if (pal && !pal.hidden) closePal(); else openPal(); return; }
     if (e.key === '`' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); openPal(); }
   });
+  var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+  Array.prototype.forEach.call(d.querySelectorAll('[data-kbd]'), function (k) { k.textContent = mac ? '⌘K' : 'Ctrl K'; });
+  Array.prototype.forEach.call(d.querySelectorAll('[data-open-palette]'), function (b) { b.addEventListener('click', openPal); });
   var navEl = d.getElementById('site-nav');
   if (navEl) {
-    var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
-    var tb = el('button', 'pal-trigger'); tb.type = 'button';
-    tb.setAttribute('aria-label', 'เปิดคำสั่งลัด'); tb.setAttribute('aria-keyshortcuts', 'Control+K Meta+K');
-    tb.append(el('span', 'pt-ic', '>_'), el('span', 'pt-t', 'คำสั่งลัด'), el('kbd', null, mac ? '⌘K' : 'Ctrl K'));
-    tb.addEventListener('click', openPal); navEl.parentNode.insertBefore(tb, navEl.nextSibling);
     var nb = el('button', 'pal-in-nav', '>_ คำสั่งลัด'); nb.type = 'button';
     nb.addEventListener('click', function () { closeMenu(); openPal(); }); navEl.insertBefore(nb, navEl.firstChild);
   }
