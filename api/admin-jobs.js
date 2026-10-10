@@ -12,10 +12,31 @@ module.exports = async (req, res) => {
     let b = {};
     try { b = JSON.parse((await readRaw(req)).toString('utf8') || '{}'); } catch (_) {}
 
+    const VIEWS = { awaiting: 'awaiting_admin=is.true&status=neq.cancelled', doing: 'status=eq.doing', done: 'status=eq.done', cancelled: 'status=eq.cancelled', all: '' };
+    const total = r => Number((r.headers.get('content-range') || '').split('/')[1] || 0);
+
+    if (b.action === 'counts') {
+      const keys = Object.keys(VIEWS);
+      const rs = await Promise.all(keys.map(k => supa('/rest/v1/jobs?select=id' + (VIEWS[k] ? '&' + VIEWS[k] : ''), { headers: { Prefer: 'count=exact', Range: '0-0' } })));
+      const counts = {}; keys.forEach((k, i) => { counts[k] = rs[i].ok ? total(rs[i]) : null; });
+      return send(res, 200, { counts });
+    }
+
     if (b.action === 'list') {
-      const r = await supa('/rest/v1/jobs?select=id,title,details,link,contact,status,price_credits,charged,admin_note,created_at,profiles(email,credits)&order=created_at.desc&limit=100');
+      const view = VIEWS[b.view] !== undefined ? b.view : 'awaiting';
+      const offset = Math.max(0, Math.min(100000, parseInt(b.offset, 10) || 0));
+      const q = String(b.q || '').replace(/[^\p{L}\p{M}\p{N}@._\- ]/gu, '').trim().slice(0, 60);
+      let filter = VIEWS[view] ? '&' + VIEWS[view] : '';
+      if (q) {
+        // ค้นจากหัวข้อ/รายละเอียด และอีเมลสมาชิก
+        const ur = await supa('/rest/v1/profiles?select=id&limit=50&email=ilike.' + encodeURIComponent('*' + q + '*'));
+        const ids = ur.ok ? (await ur.json()).map(x => x.id) : [];
+        const pat = encodeURIComponent('*' + q + '*');
+        filter += '&or=(title.ilike.' + pat + ',details.ilike.' + pat + (ids.length ? ',user_id.in.(' + ids.join(',') + ')' : '') + ')';
+      }
+      const r = await supa('/rest/v1/jobs?select=id,title,details,link,contact,status,price_credits,charged,admin_note,awaiting_admin,created_at,updated_at,profiles(email,credits)' + filter + '&order=updated_at.desc&limit=20&offset=' + offset, { headers: { Prefer: 'count=exact' } });
       if (!r.ok) { console.error('list jobs failed', r.status, await r.text()); return send(res, 500, { error: 'โหลดรายการงานไม่สำเร็จ' }); }
-      return send(res, 200, { jobs: await r.json() });
+      return send(res, 200, { jobs: await r.json(), total: total(r) });
     }
     if (!UUID.test(String(b.id || ''))) return send(res, 400, { error: 'รหัสงานไม่ถูกต้อง' });
 
@@ -25,7 +46,7 @@ module.exports = async (req, res) => {
       const oldRes = await supa('/rest/v1/jobs?select=user_id,title,status,admin_note&id=eq.' + b.id);
       const old = oldRes.ok ? (await oldRes.json())[0] : null;
       if (!old) return send(res, 404, { error: 'ไม่พบงาน' });
-      const r = await supa('/rest/v1/jobs?id=eq.' + b.id, { method: 'PATCH', body: JSON.stringify({ status: b.status, admin_note: note || null, updated_at: new Date().toISOString() }) });
+      const r = await supa('/rest/v1/jobs?id=eq.' + b.id, { method: 'PATCH', body: JSON.stringify({ status: b.status, admin_note: note || null, awaiting_admin: false, updated_at: new Date().toISOString() }) });
       if (!r.ok) { console.error('update job failed', r.status, await r.text()); return send(res, 500, { error: 'บันทึกไม่สำเร็จ' }); }
       if (old.status !== b.status || (old.admin_note || '') !== note) {
         await notifyUser(old.user_id, 'job_update', 'อัปเดตงาน: ' + old.title, 'สถานะ: ' + LABEL[b.status] + (note ? ' · ' + note.slice(0, 120) : ''), '/account.html#jobs');
