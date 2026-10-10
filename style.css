@@ -245,7 +245,7 @@ html.booting body>*:not(.boot){visibility:hidden}
 .boot{position:fixed;inset:0;z-index:300;background:#020805;display:flex;align-items:center;justify-content:center;transition:opacity .35s}
 .boot.out{opacity:0;pointer-events:none}
 .boot-box{width:min(520px,calc(100% - 40px));font:14px/1.9 var(--fm);color:var(--neon)}
-.boot-log{margin:0 0 18px;white-space:pre-wrap;min-height:7.6em;color:#8BFFCB;font:inherit}
+.boot-log{margin:0 0 18px;white-space:pre-wrap;min-height:15.6em;color:#8BFFCB;font:inherit}
 .boot-bar{height:6px;border:1px solid #1F5A3F;border-radius:3px;overflow:hidden}
 .boot-bar i{display:block;height:100%;width:0;background:var(--neon);box-shadow:0 0 12px var(--neon);transition:width 1.3s ease-out}
 .boot-skip{margin-top:16px;background:none;border:0;color:var(--mute);font:inherit;cursor:pointer;text-decoration:underline;padding:4px 0}

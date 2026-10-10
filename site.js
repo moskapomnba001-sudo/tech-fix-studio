@@ -210,11 +210,13 @@
   o.innerHTML = '<div class="boot-box"><pre class="boot-log" aria-hidden="true"></pre><div class="boot-bar" aria-hidden="true"><i></i></div><button type="button" class="boot-skip">ข้าม ›</button></div>';
   d.body.appendChild(o);
   var log = o.querySelector('.boot-log'), bar = o.querySelector('i'), skip = o.querySelector('.boot-skip');
-  var lines = ['> booting tech-fix-studio ...', '> loading services ........ ok', '> connecting telegram ..... ok', '> ready.'];
+  var DURATION = 5000; // ความยาวจอบูต (มิลลิวินาที) แก้ตัวเลขนี้ตัวเดียว
+  var lines = ['> booting tech-fix-studio ...', '> loading services ........ ok', '> loading database tools .. ok', '> checking payment module . ok', '> connecting telegram ..... ok', '> syncing notifications ... ok', '> warming up the terminal . ok', '> ready.'];
   var i = 0, done = false;
   var t = setInterval(function () {
     if (i < lines.length) { log.textContent += (i ? '\n' : '') + lines[i]; i++; } else finish();
-  }, 260);
+  }, DURATION / (lines.length + 1));
+  bar.style.transition = 'width ' + DURATION + 'ms cubic-bezier(.3,.6,.4,1)';
   requestAnimationFrame(function () { requestAnimationFrame(function () { bar.style.width = '100%'; }); });
   function finish() {
     if (done) return; done = true; clearInterval(t);
