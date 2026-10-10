@@ -101,12 +101,12 @@
 const $=id=>document.getElementById(id);
 const cfg=window.SITE_CONFIG||{};
 const ok=cfg.url&&cfg.anonKey&&!/YOUR/.test(cfg.url+cfg.anonKey);
-let sb=null,mode='in',recovering=false;
+let sb=null,mode='in',recovering=false,prefilled=false;
 function msg(t,c){const m=$('authmsg');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
 function setMode(m){mode=m;$('tab-in').setAttribute('aria-selected',m==='in');$('tab-up').setAttribute('aria-selected',m==='up');$('go').textContent=m==='in'?'เข้าสู่ระบบ':m==='up'?'สมัครสมาชิก':'ส่งลิงก์ตั้งรหัสผ่านใหม่';$('pw').autocomplete=m==='in'?'current-password':'new-password';$('pwl').hidden=m==='reset';$('forgot').hidden=m!=='in';msg('')}
 function tab(n){['1','2','3','4'].forEach(i=>{$('d'+i).setAttribute('aria-selected',i===n);$('p'+i).hidden=i!==n});if(n==='3')loadHist();if(n==='4')loadJobs()}
 async function credits(){const{data,error}=await sb.from('profiles').select('credits').maybeSingle();$('bal').textContent=error||!data?'–':Number(data.credits).toLocaleString('th-TH')+' เครดิต'}
-function view(session){if(recovering)return;$('loading').hidden=true;$('auth').hidden=!!session;$('dash').hidden=!session;if(session){$('who').textContent=session.user.email;$('myemail').textContent=session.user.email;credits()}}
+function view(session){if(recovering)return;$('loading').hidden=true;$('auth').hidden=!!session;$('dash').hidden=!session;if(session){$('who').textContent=session.user.email;$('myemail').textContent=session.user.email;credits();applyPrefill()}}
 async function submit(){
  const email=$('email').value.trim(),password=$('pw').value;
  if(mode==='reset'){
@@ -144,6 +144,10 @@ async function pay(){
   if(!r.ok||!j.url)throw new Error(j.error||'สร้างลิงก์ไม่สำเร็จ');
   location.href=j.url;
  }catch(e){tmsg(e.message,'err');b.disabled=false}
+}
+function applyPrefill(){
+ if(prefilled)return;const j=new URLSearchParams(location.search).get('job');if(!j)return;
+ prefilled=true;tab('4');$('jt').value=j.trim().slice(0,120);$('jd').focus();history.replaceState(null,'',location.pathname+location.hash);
 }
 let watching=false;
 function watch(){

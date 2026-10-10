@@ -189,3 +189,50 @@
     } catch (e) {}
   })();
 })();
+
+/* ===== จอบูตสไตล์เทอร์มินัล (หน้าแรก, ครั้งเดียวต่อเซสชัน, ข้ามได้) ===== */
+(function () {
+  var root = document.documentElement, d = document;
+  if (!root.classList.contains('booting')) return;
+  var o = d.createElement('div'); o.className = 'boot'; o.setAttribute('role', 'presentation');
+  o.innerHTML = '<div class="boot-box"><pre class="boot-log" aria-hidden="true"></pre><div class="boot-bar" aria-hidden="true"><i></i></div><button type="button" class="boot-skip">ข้าม ›</button></div>';
+  d.body.appendChild(o);
+  var log = o.querySelector('.boot-log'), bar = o.querySelector('i'), skip = o.querySelector('.boot-skip');
+  var lines = ['> booting tech-fix-studio ...', '> loading services ........ ok', '> connecting telegram ..... ok', '> ready.'];
+  var i = 0, done = false;
+  var t = setInterval(function () {
+    if (i < lines.length) { log.textContent += (i ? '\n' : '') + lines[i]; i++; } else finish();
+  }, 260);
+  requestAnimationFrame(function () { requestAnimationFrame(function () { bar.style.width = '100%'; }); });
+  function finish() {
+    if (done) return; done = true; clearInterval(t);
+    try { sessionStorage.setItem('booted', '1'); } catch (e) {}
+    root.classList.remove('booting'); o.classList.add('out');
+    setTimeout(function () { if (o.parentNode) o.parentNode.removeChild(o); }, 400);
+  }
+  skip.addEventListener('click', finish);
+  d.addEventListener('keydown', function (e) { if (!done && (e.key === 'Escape' || e.key === 'Enter')) finish(); });
+})();
+
+/* ===== ป้ายหัวเรื่องที่พิมพ์สลับคำ (อ่านผ่านโปรแกรมอ่านหน้าจอเป็นข้อความคงที่) ===== */
+(function () {
+  var d = document, e = d.querySelector('[data-rotate]');
+  if (!e || (window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches)) return;
+  var items = e.getAttribute('data-rotate').split('|'), seg = window.Intl && Intl.Segmenter ? new Intl.Segmenter('th', { granularity: 'grapheme' }) : null;
+  function g(s) { return seg ? Array.from(seg.segment(s), function (x) { return x.segment; }) : Array.from(s); }
+  var sr = d.createElement('span'); sr.className = 'sr-only'; sr.textContent = e.textContent;
+  var vis = d.createElement('span'); vis.setAttribute('aria-hidden', 'true'); vis.className = 'tvis';
+  e.textContent = ''; e.append(sr, vis);
+  var k = 0;
+  function type(chars, n) {
+    vis.textContent = '// ' + chars.slice(0, n).join('');
+    if (n < chars.length) setTimeout(function () { type(chars, n + 1); }, 70);
+    else setTimeout(function () { erase(chars, n); }, 1600);
+  }
+  function erase(chars, n) {
+    vis.textContent = '// ' + chars.slice(0, n).join('');
+    if (n > 0) setTimeout(function () { erase(chars, n - 1); }, 35);
+    else { k = (k + 1) % items.length; setTimeout(function () { type(g(items[k]), 0); }, 250); }
+  }
+  type(g(items[0]), 0);
+})();
