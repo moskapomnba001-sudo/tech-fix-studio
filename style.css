@@ -230,3 +230,13 @@ label.f textarea:focus,label.f select:focus{border-color:var(--neon);outline:3px
 .badge.wait{color:#FFD166;border-color:#5A4A12;background:rgba(255,209,102,.08)}
 .fin{margin-top:16px}.fin summary{cursor:pointer;color:var(--mute);font:500 14px var(--fm);padding:6px 0}
 @media(max-width:560px){.jrow{flex-direction:column;align-items:flex-start}.jrow .jb{justify-content:flex-start}}
+/* ---- mobile polish (from real phone screenshots) ---- */
+.ph{display:inline-block}
+footer{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+@media(max-width:560px){
+.cta .btn{flex:1 1 100%;text-align:center}
+.tabs button{padding:10px 12px;font-size:14px}
+.diff{font-size:12px}
+.diff .l{white-space:pre-wrap;overflow-wrap:anywhere}
+.diff pre{overflow-x:visible}
+}
