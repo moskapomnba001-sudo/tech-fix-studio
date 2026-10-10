@@ -23,7 +23,10 @@
     { k: 'services', t: 'บริการทั้งหมด', u: '/#services' },
     { k: 'pricing', t: 'คำนวณค่าบริการ', u: '/pricing.html' },
     { k: 'faq', t: 'คำถามที่พบบ่อย', u: '/#faq' },
-    { k: 'login', t: 'เข้าสู่ระบบ / สมัครสมาชิก / เติมเครดิต', u: '/account.html' },
+    { k: 'login', t: 'เข้าสู่ระบบ / สมัครสมาชิก', u: '/account.html' },
+    { k: 'order', t: 'สั่งงานใหม่ / ดูงานของฉัน', u: '/account.html#jobs' },
+    { k: 'topup', t: 'เติมเครดิต', u: '/account.html#topup' },
+    { k: 'history', t: 'ประวัติเครดิต', u: '/account.html#history' },
     { k: 'contact', t: 'ช่องทางติดต่อ', u: '/#contact' },
     { k: 'telegram', t: 'เปิด Telegram @qplynnnz', u: 'https://t.me/qplynnnz', ext: true },
     { k: 'call', t: 'โทร +6661126882', u: 'tel:+6661126882' }
@@ -34,10 +37,10 @@
     pal = el('div', 'pal'); pal.hidden = true; pal.setAttribute('role', 'dialog'); pal.setAttribute('aria-modal', 'true'); pal.setAttribute('aria-label', 'คำสั่งลัด');
     var box = el('div', 'pal-box'), row = el('div', 'pal-in');
     input = el('input'); input.type = 'text'; input.autocomplete = 'off'; input.spellcheck = false;
-    input.setAttribute('aria-label', 'พิมพ์คำสั่ง'); input.placeholder = 'พิมพ์คำสั่ง เช่น pricing, login, contact';
+    input.setAttribute('aria-label', 'พิมพ์คำสั่ง'); input.placeholder = 'พิมพ์คำสั่ง หรือเลือกจากรายการ';
     row.append(el('span', null, '$'), input);
     list = el('ul'); list.setAttribute('role', 'listbox');
-    box.append(row, list, el('div', 'pal-hint', '↑↓ เลือก · Enter เปิด · Esc ปิด'));
+    box.append(row, list, el('div', 'pal-hint', '↑↓ เลือก · Enter หรือคลิกเพื่อเปิด · Esc ปิด'));
     pal.append(box); d.body.append(pal);
     pal.addEventListener('mousedown', function (e) { if (e.target === pal) closePal(); });
     input.addEventListener('input', function () { render(input.value); });
@@ -49,7 +52,8 @@
   }
   function render(q) {
     q = (q || '').trim().toLowerCase();
-    shown = CMDS.filter(function (c) { return !q || c.k.indexOf(q) > -1 || c.t.toLowerCase().indexOf(q) > -1; });
+    var all = d.querySelector('[data-admin]') ? CMDS.concat([{ k: 'admin', t: 'หน้าแอดมิน', u: '/admin.html' }]) : CMDS;
+    shown = all.filter(function (c) { return !q || c.k.indexOf(q) > -1 || c.t.toLowerCase().indexOf(q) > -1; });
     sel = 0; list.textContent = '';
     if (!shown.length) { list.append(el('li', null, 'ไม่พบคำสั่ง')); return; }
     shown.forEach(function (c, i) {
@@ -79,6 +83,16 @@
     if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); if (pal && !pal.hidden) closePal(); else openPal(); return; }
     if (e.key === '`' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); openPal(); }
   });
+  var navEl = d.getElementById('site-nav');
+  if (navEl) {
+    var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+    var tb = el('button', 'pal-trigger'); tb.type = 'button';
+    tb.setAttribute('aria-label', 'เปิดคำสั่งลัด'); tb.setAttribute('aria-keyshortcuts', 'Control+K Meta+K');
+    tb.append(el('span', 'pt-ic', '>_'), el('span', 'pt-t', 'คำสั่งลัด'), el('kbd', null, mac ? '⌘K' : 'Ctrl K'));
+    tb.addEventListener('click', openPal); navEl.parentNode.insertBefore(tb, navEl.nextSibling);
+    var nb = el('button', 'pal-in-nav', '>_ คำสั่งลัด'); nb.type = 'button';
+    nb.addEventListener('click', function () { closeMenu(); openPal(); }); navEl.insertBefore(nb, navEl.firstChild);
+  }
   var fw = d.querySelector('footer .wrap');
   if (fw) {
     var b = el('button', 'pal-open', 'เปิดคำสั่งลัด ( ` / Ctrl+K )'); b.type = 'button';

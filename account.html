@@ -106,7 +106,7 @@ function msg(t,c){const m=$('authmsg');m.textContent=t||'';m.className='msg '+(c
 function setMode(m){mode=m;$('tab-in').setAttribute('aria-selected',m==='in');$('tab-up').setAttribute('aria-selected',m==='up');$('go').textContent=m==='in'?'เข้าสู่ระบบ':m==='up'?'สมัครสมาชิก':'ส่งลิงก์ตั้งรหัสผ่านใหม่';$('pw').autocomplete=m==='in'?'current-password':'new-password';$('pwl').hidden=m==='reset';$('forgot').hidden=m!=='in';msg('')}
 function tab(n){['1','2','3','4'].forEach(i=>{$('d'+i).setAttribute('aria-selected',i===n);$('p'+i).hidden=i!==n});if(n==='3')loadHist();if(n==='4')loadJobs()}
 async function credits(){const{data,error}=await sb.from('profiles').select('credits').maybeSingle();$('bal').textContent=error||!data?'–':Number(data.credits).toLocaleString('th-TH')+' เครดิต'}
-function view(session){if(recovering)return;$('loading').hidden=true;$('auth').hidden=!!session;$('dash').hidden=!session;if(session){$('who').textContent=session.user.email;$('myemail').textContent=session.user.email;credits();applyPrefill()}}
+function view(session){if(recovering)return;$('loading').hidden=true;$('auth').hidden=!!session;$('dash').hidden=!session;if(session){$('who').textContent=session.user.email;$('myemail').textContent=session.user.email;credits();applyPrefill();if(!hashDone){hashDone=true;hashTab()}}}
 async function submit(){
  const email=$('email').value.trim(),password=$('pw').value;
  if(mode==='reset'){
@@ -145,6 +145,8 @@ async function pay(){
   location.href=j.url;
  }catch(e){tmsg(e.message,'err');b.disabled=false}
 }
+function hashTab(){const m={'#topup':'2','#history':'3','#jobs':'4'}[location.hash];if(m)tab(m)}
+let hashDone=false;
 function applyPrefill(){
  if(prefilled)return;const j=new URLSearchParams(location.search).get('job');if(!j)return;
  prefilled=true;tab('4');$('jt').value=j.trim().slice(0,120);$('jd').focus();history.replaceState(null,'',location.pathname+location.hash);
@@ -247,8 +249,8 @@ else{
   sb=supabase.createClient(cfg.url,cfg.anonKey);window.__sb=sb;
   $('out').onclick=()=>sb.auth.signOut();$('refresh').onclick=credits;
   sb.auth.onAuthStateChange((ev,s)=>{if(ev==='PASSWORD_RECOVERY')recovering=true;setTimeout(()=>{if(ev==='PASSWORD_RECOVERY'){$('loading').hidden=true;$('auth').hidden=true;$('dash').hidden=true;$('recover').hidden=false;return}view(s)},0)});
-  sb.auth.getSession().then(({data})=>{view(data.session);if(data.session){watch();if(location.hash==='#jobs')tab('4')}});
- addEventListener('hashchange',()=>{if(location.hash==='#jobs'&&sb)tab('4')});
+  sb.auth.getSession().then(({data})=>{view(data.session);if(data.session)watch()});
+ addEventListener('hashchange',()=>{if(sb)hashTab()});
  }catch(e){fatal('ค่าใน config.js ไม่ถูกต้อง: '+e.message)}
 }
 </script>
