@@ -211,15 +211,18 @@ async function loadJobs(){
  const box=$('joblist');box.textContent='';
  const{data,error}=await sb.from('jobs').select('id,title,status,price_credits,charged,admin_note,created_at').order('created_at',{ascending:false}).limit(50);
  if(error||!data||!data.length){box.append(el('p','note',error?'โหลดรายการงานไม่สำเร็จ':'ยังไม่มีงาน'));return}
- data.forEach(j=>{
+ const mk=j=>{
   const c=el('div','job'),top=el('div','top');
   top.append(el('h4',null,j.title),el('span','badge '+j.status,JST[j.status]||j.status));c.append(top);
   c.append(el('div','meta',new Date(j.created_at).toLocaleString('th-TH')+(j.charged?' · หักเครดิตแล้ว '+Number(j.price_credits).toLocaleString('th-TH'):'')));
   if(j.admin_note)c.append(el('div','note2',j.admin_note));
   const th=thread(j.id,j.status==='cancelled'),tb=el('button','btn alt','แชตกับทีมงาน');tb.type='button';
   tb.onclick=()=>{th.hidden=!th.hidden;if(!th.hidden)th.load()};
-  const row=el('div','ctl');row.append(tb);c.append(row,th);box.append(c);
- });
+  const row=el('div','ctl');row.append(tb);c.append(row,th);return c};
+ const active=data.filter(j=>j.status==='new'||j.status==='doing'),fin=data.filter(j=>j.status!=='new'&&j.status!=='doing');
+ active.forEach(j=>box.append(mk(j)));
+ if(!active.length)box.append(el('p','note','ไม่มีงานที่กำลังดำเนินการ'));
+ if(fin.length){const dt=document.createElement('details');dt.className='fin';dt.append(el('summary',null,'งานที่จบแล้ว/ยกเลิก ('+fin.length+')'));fin.forEach(j=>dt.append(mk(j)));box.append(dt)}
 }
 async function loadHist(){
  const t=$('hist');t.textContent='';$('histempty').hidden=true;

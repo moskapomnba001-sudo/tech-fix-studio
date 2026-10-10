@@ -212,3 +212,21 @@ label.f textarea:focus,label.f select:focus{border-color:var(--neon);outline:3px
 .thread textarea{display:block;width:100%;font:inherit;color:var(--ink);background:var(--panel);border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;min-height:56px;resize:vertical;margin-bottom:8px}
 .thread textarea:focus{border-color:var(--neon);outline:3px solid rgba(0,255,156,.2)}
 .thread .btn{padding:9px 16px;font-size:14px}
+/* ---- compact admin job list ---- */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.chip{font:500 13px var(--fm);color:var(--mute);background:transparent;border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;transition:.15s}
+.chip:hover{border-color:var(--neon);color:var(--neon)}
+.chip[aria-pressed=true]{color:#021208;background:var(--neon);border-color:var(--neon);font-weight:700}
+.jsearch{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.jsearch input{flex:1 1 240px;min-width:0;font:inherit;color:var(--ink);background:var(--panel);border:1.5px solid var(--line);border-radius:8px;padding:10px 14px}
+.jsearch input:focus{border-color:var(--neon);outline:3px solid rgba(0,255,156,.2)}
+.job.compact{padding:0;margin-top:8px;overflow:hidden}
+.jrow{display:flex;width:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:12px 16px;gap:12px;justify-content:space-between;align-items:center}
+.jrow:hover{background:rgba(0,255,156,.05)}
+.jrow .t{font:700 15px var(--fh);word-break:break-word}
+.jrow .m{color:var(--mute);font-size:13px;word-break:break-all}
+.jrow .jb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none}
+.jbody{padding:4px 16px 16px;border-top:1px dashed var(--line)}
+.badge.wait{color:#FFD166;border-color:#5A4A12;background:rgba(255,209,102,.08)}
+.fin{margin-top:16px}.fin summary{cursor:pointer;color:var(--mute);font:500 14px var(--fm);padding:6px 0}
+@media(max-width:560px){.jrow{flex-direction:column;align-items:flex-start}.jrow .jb{justify-content:flex-start}}

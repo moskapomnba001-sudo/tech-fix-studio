@@ -31,9 +31,11 @@
 <div class="cta"><button class="btn" id="ded" type="button">หักเครดิต</button><button class="btn alt" id="add" type="button">เพิ่มเครดิต</button></div>
 </div>
 <h2 style="margin-top:56px">รายการงานจากลูกค้า</h2>
+<div class="chips" id="chips" role="group" aria-label="กรองตามสถานะ"></div>
+<div class="jsearch"><input id="jq" type="search" maxlength="60" placeholder="ค้นหาจากอีเมล หัวข้อ หรือรายละเอียด" aria-label="ค้นหางาน"><button class="btn alt" id="jobsreload" type="button">รีเฟรช</button></div>
 <div id="jobsmsg" class="msg" hidden role="alert"></div>
-<div class="row" style="margin-bottom:8px"><button class="btn alt" id="jobsreload" type="button">รีเฟรชรายการ</button></div>
 <div id="jobs"></div>
+<div class="row" style="margin-top:14px"><button class="btn alt" id="jmore" type="button" hidden>โหลดเพิ่ม</button><span class="note" id="jcount" style="margin:0"></span></div>
 </div></div></section></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
@@ -53,18 +55,39 @@ async function call(body,url){
 
 const SL={new:'รอตอบรับ',doing:'กำลังทำ',done:'เสร็จแล้ว',cancelled:'ยกเลิก'};
 const API_JOBS='/api/admin-jobs';
+const VIEWS=[['awaiting','รอตอบ'],['doing','กำลังทำ'],['done','เสร็จแล้ว'],['cancelled','ยกเลิก'],['all','ทั้งหมด']];
+let view='awaiting',q='',offset=0,total=0,loading=false,timer=null;
 function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
 function jm(t,c){const m=$('jobsmsg');m.textContent=t||'';m.className='msg '+(c||'');m.hidden=!t}
-async function loadJobs(){
- const box=$('jobs');
+function ago(t){const s=(Date.now()-new Date(t).getTime())/1000;if(s<60)return'เมื่อสักครู่';if(s<3600)return Math.floor(s/60)+' นาทีที่แล้ว';if(s<86400)return Math.floor(s/3600)+' ชั่วโมงที่แล้ว';if(s<2592000)return Math.floor(s/86400)+' วันที่แล้ว';return new Date(t).toLocaleDateString('th-TH')}
+function buildChips(){
+ const box=$('chips');
+ VIEWS.forEach(([k,t])=>{const b=el('button','chip',t);b.type='button';b.dataset.k=k;b.dataset.t=t;b.setAttribute('aria-pressed',k===view?'true':'false');
+  b.onclick=()=>{view=k;[...box.children].forEach(c=>c.setAttribute('aria-pressed',c.dataset.k===view?'true':'false'));loadJobs(true)};box.append(b)});
+}
+async function refreshCounts(){
+ try{const r=await call({action:'counts'},API_JOBS);[...$('chips').children].forEach(c=>{const n=r.counts[c.dataset.k];c.textContent=c.dataset.t+(n!=null?' ('+n+')':'')})}catch(e){}
+}
+async function loadJobs(reset){
+ if(loading)return;loading=true;jm('');
+ const box=$('jobs');if(reset){offset=0;box.textContent=''}
  try{
-  const j=await call({action:'list'},API_JOBS);box.textContent='';
-  if(!j.jobs.length){box.append(el('p','note','ยังไม่มีงานจากลูกค้า'));return}
-  j.jobs.forEach(job=>box.append(jobCard(job)));
+  const r=await call({action:'list',view,q,offset},API_JOBS);total=r.total;
+  r.jobs.forEach(j=>box.append(jobRow(j)));offset+=r.jobs.length;
+  if(!box.children.length)box.append(el('p','note',view==='awaiting'&&!q?'ไม่มีงานที่รอตอบ ดูแท็บอื่นได้ด้านบน':'ไม่พบรายการ'));
+  $('jcount').textContent=total?'แสดง '+Math.min(offset,total)+' จาก '+total+' รายการ':'';
+  $('jmore').hidden=offset>=total;
  }catch(e){jm(e.message,'err')}
+ loading=false;
+}
+function initJobs(){
+ buildChips();refreshCounts();loadJobs(true);
+ $('jobsreload').onclick=()=>{refreshCounts();loadJobs(true)};
+ $('jmore').onclick=()=>loadJobs(false);
+ $('jq').oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>{q=$('jq').value.trim();loadJobs(true)},350)};
 }
 function bubble(m){const b=el('div','bubble '+(m.sender_role==='admin'?'me':'them'));b.append(el('div','who',m.sender_role==='admin'?'ทีมงาน':'ลูกค้า'),el('div','txt',m.body),el('div','ts',new Date(m.created_at).toLocaleString('th-TH')));return b}
-function adminThread(job){
+function adminThread(job,onSent){
  const box=el('div','thread'),list=el('div','msgs');box.hidden=true;
  const ta=el('textarea');ta.maxLength=2000;ta.rows=2;ta.placeholder='พิมพ์ข้อความถึงลูกค้า (ลูกค้าจะเห็นในแท็บ "งานของฉัน" และมีแจ้งเตือนที่กระดิ่ง)';
  const send=el('button','btn','ส่งข้อความ');send.type='button';const st=el('div','msg');st.hidden=true;
@@ -80,17 +103,28 @@ function adminThread(job){
    const{data}=await sb.auth.getSession();
    const r=await fetch('/api/job-message',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify({job_id:job.id,body})});
    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'ส่งข้อความไม่สำเร็จ');
-   ta.value='';await load();
+   ta.value='';await load();if(onSent)onSent();
   }catch(e){st.textContent=e.message;st.className='msg err';st.hidden=false}
   send.disabled=false;
  };
  box.append(list,ta,send,st);box.load=load;return box;
 }
-function jobCard(job){
- const email=(job.profiles&&job.profiles.email)||'-',c=el('div','job'),top=el('div','top');
- const badge=el('span','badge '+job.status,SL[job.status]||job.status);
- top.append(el('h4',null,job.title),badge);c.append(top);
- c.append(el('div','meta',email+' · '+new Date(job.created_at).toLocaleString('th-TH')+(job.charged?' · หักแล้ว '+job.price_credits+' เครดิต':'')));
+function badges(job,box){
+ box.textContent='';box.append(el('span','badge '+job.status,SL[job.status]||job.status));
+ if(job.awaiting_admin&&job.status!=='cancelled')box.append(el('span','badge wait','รอตอบ'));
+ if(job.charged)box.append(el('span','badge done','หักแล้ว '+Number(job.price_credits).toLocaleString('th-TH')));
+}
+function jobRow(job){
+ const email=(job.profiles&&job.profiles.email)||'-',c=el('div','job compact'),head=el('button','jrow');
+ head.type='button';head.setAttribute('aria-expanded','false');
+ const left=el('div');left.append(el('div','t',job.title),el('div','m',email+' · '+ago(job.updated_at||job.created_at)));
+ const bd=el('div','jb');head.append(left,bd);badges(job,bd);
+ const body=el('div','jbody');body.hidden=true;
+ head.onclick=()=>{const open=body.hidden;body.hidden=!open;head.setAttribute('aria-expanded',open?'true':'false');if(open&&!body.childElementCount)fillBody(body,job,bd,email)};
+ c.append(head,body);return c;
+}
+function fillBody(c,job,bd,email){
+ c.append(el('div','meta','ส่งเมื่อ '+new Date(job.created_at).toLocaleString('th-TH')));
  c.append(el('p',null,job.details));
  if(job.link&&/^https?:\/\//i.test(job.link)){const a=el('a',null,job.link);a.href=job.link;a.target='_blank';a.rel='noopener noreferrer nofollow';const m=el('div','meta');m.append('ลิงก์: ',a);c.append(m)}
  if(job.contact)c.append(el('div','meta','ติดต่อกลับ: '+job.contact));
@@ -98,7 +132,7 @@ function jobCard(job){
  Object.keys(SL).forEach(k=>{const o=el('option',null,SL[k]);o.value=k;if(k===job.status)o.selected=true;sel.append(o)});
  const note=el('input');note.type='text';note.maxLength=500;note.placeholder='หมายเหตุสถานะที่ลูกค้าเห็น (ไม่บังคับ)';note.value=job.admin_note||'';note.style.flex='1 1 200px';
  const save=el('button','btn alt','บันทึกสถานะ');save.type='button';
- save.onclick=async()=>{save.disabled=true;try{await call({action:'status',id:job.id,status:sel.value,note:note.value},API_JOBS);badge.className='badge '+sel.value;badge.textContent=SL[sel.value];jm('บันทึกสถานะแล้ว','ok')}catch(e){jm(e.message,'err')}save.disabled=false};
+ save.onclick=async()=>{save.disabled=true;try{await call({action:'status',id:job.id,status:sel.value,note:note.value},API_JOBS);job.status=sel.value;job.awaiting_admin=false;badges(job,bd);refreshCounts();jm('บันทึกสถานะแล้ว','ok')}catch(e){jm(e.message,'err')}save.disabled=false};
  ctl.append(sel,note,save);c.append(ctl);
  if(!job.charged){
   const c2=el('div','ctl'),n=el('input');n.type='number';n.min=1;n.step=1;n.placeholder='เครดิตที่จะหัก';n.inputMode='numeric';
@@ -107,15 +141,14 @@ function jobCard(job){
    const v=Number(n.value);if(!Number.isInteger(v)||v<1){jm('กรอกจำนวนเครดิตเป็นจำนวนเต็ม','err');return}
    if(!confirm('หัก '+v.toLocaleString('th-TH')+' เครดิต จาก '+email+' สำหรับงาน "'+job.title+'" ใช่หรือไม่?'))return;
    ch.disabled=true;
-   try{const r=await call({action:'charge',id:job.id,credits:v},API_JOBS);jm('หักเครดิตสำเร็จ ยอดคงเหลือใหม่ '+fmt(r.credits),'ok');loadJobs()}
+   try{const r=await call({action:'charge',id:job.id,credits:v},API_JOBS);job.charged=true;job.price_credits=v;badges(job,bd);c2.remove();jm('หักเครดิตสำเร็จ ยอดคงเหลือใหม่ '+fmt(r.credits),'ok')}
    catch(e){jm(e.message,'err');ch.disabled=false}
   };
   c2.append(n,ch);c.append(c2);
  }
- const th=adminThread(job),tb=el('button','btn alt','เปิดแชตกับลูกค้า');tb.type='button';
+ const th=adminThread(job,()=>{job.awaiting_admin=false;badges(job,bd);refreshCounts()}),tb=el('button','btn alt','เปิดแชตกับลูกค้า');tb.type='button';
  tb.onclick=()=>{th.hidden=!th.hidden;if(!th.hidden)th.load()};
  const row=el('div','ctl');row.append(tb);c.append(row,th);
- return c;
 }
 const fmt=n=>Number(n).toLocaleString('th-TH')+' เครดิต';
 async function look(){
@@ -136,8 +169,7 @@ async function adjust(type){
  if(!cfg.url||!cfg.anonKey||/YOUR/.test(cfg.url+cfg.anonKey)||!window.supabase){$('fatal').textContent='ตั้งค่า config.js ไม่ถูกต้อง หรือโหลด Supabase ไม่ได้';show('fatal');return}
  sb=supabase.createClient(cfg.url,cfg.anonKey);
  $('look').onclick=look;$('ded').onclick=()=>adjust('deduct');$('add').onclick=()=>adjust('add');
- $('jobsreload').onclick=loadJobs;
- try{await call({action:'check'});show('panel');loadJobs()}
+ try{await call({action:'check'});show('panel');initJobs()}
  catch(e){if(e.status===403)show('forbidden');else if(e.status===401)show('nologin');else{$('fatal').textContent=e.message;show('fatal')}}
 })();
 </script>
